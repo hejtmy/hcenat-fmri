@@ -27,9 +27,9 @@ subject_dir <- paste0(data_dir, subject_code, "/MRI/", "Session1/")
 ls <- open_experiment_logs(subject_dir)
 #for each experiment_log, we open player log, scenario log and appropriate quest logs
 self$trial_sets = list()
-for (i in 1:length(experiment_logs)){
-  experiment_log <- experiment_logs[[i]]
-  player_log <- open_player_log(experiment_log, override)
+for (i in 1:length(ls)){
+  experiment_log <- ls[[i]]
+  player_log <- open_player_log(experiment_log, F)
   #preprocesses player log
   #checks if there is everything we need and if not, recomputes the stuff
   if(is.null(player_log)) next
