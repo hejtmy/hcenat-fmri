@@ -1,4 +1,4 @@
-open_player_log =  function(experiment_log, override = F){
+open_player_log <- function(experiment_log, override = F){
   directory <- dirname(experiment_log$filename)
   ptr <- paste(experiment_log$header$Patient, "_player_", experiment_log$header$Time, sep="", collapse="")
   logs <- list.files(directory, pattern = ptr, full.names = T)

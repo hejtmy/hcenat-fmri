@@ -1,3 +1,4 @@
-source('functions/loading/open-experiment-log.R')
-source('functions/loading/parse-asterisk-value.R')
-source('functions/loading/open-experiment-logs.R')
+source_folder <- function(path){
+  sapply(list.files(pattern="[.]R$", path=path, full.names=TRUE, recursive = T), source);
+}
+source_folder("functions/")
