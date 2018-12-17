@@ -26,3 +26,17 @@ subject_dir <- paste0(data_dir, subject_code, "/MRI/", "Session1/")
 
 ls <- open_experiment_logs(subject_dir)
 #for each experiment_log, we open player log, scenario log and appropriate quest logs
+self$trial_sets = list()
+for (i in 1:length(experiment_logs)){
+  experiment_log <- experiment_logs[[i]]
+  player_log <- open_player_log(experiment_log, override)
+  #preprocesses player log
+  #checks if there is everything we need and if not, recomputes the stuff
+  if(is.null(player_log)) next
+  #if(save) SavePreprocessedPlayer(experiment_log, player_log)
+  #scenario_log = open_scenario_log(experiment_log)
+  #quests_logs = open_quests_logs(experiment_log, scenario_log)
+  
+  #self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
+}
+#self$quest_set = make_quest_set(self$trial_sets)
