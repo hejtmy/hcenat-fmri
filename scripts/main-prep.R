@@ -35,7 +35,7 @@ for (i in 1:length(ls)){
   if(is.null(player_log)) next
   if (override) SavePreprocessedPlayer(experiment_log, player_log)
   scenario_log <- open_scenario_log(experiment_log)
-  #quests_logs = open_quests_logs(experiment_log, scenario_log)
+  quests_logs <- open_quests_logs(experiment_log, scenario_log)
   
   #self$trial_sets[[i]] = UnityTrialSet$new(experiment_log, player_log, scenario_log, quests_logs)
 }
