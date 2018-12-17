@@ -39,4 +39,4 @@ for (i in 1:length(ls)){
   
   session <- list(experiment_log, player_log, scenario_log, quests_logs)
 }
-#self$quest_set = make_quest_set(self$trial_sets)
+quests_set <- df_quests_info(quests_logs)
