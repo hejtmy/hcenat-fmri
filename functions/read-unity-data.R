@@ -1,6 +1,7 @@
 read_unity_data <- function(folder, override = FALSE){
   ls  <- open_experiment_logs(folder)
   #for each experiment_log, we open player log, scenario log and appropriate quest logs
+  response <- list()
   for (i in 1:length(ls)){
     experiment_log <- ls[[i]]
     player_log <- open_player_log(experiment_log, F)
@@ -11,7 +12,10 @@ read_unity_data <- function(folder, override = FALSE){
     scenario_log <- open_scenario_log(experiment_log)
     quests_logs <- open_quests_logs(experiment_log, scenario_log)
     
-    session <- list(experiment_log, player_log, scenario_log, quests_logs)
+    response[[i]] <-  list(experiment_log = experiment_log,
+                           player_log = player_log,
+                           scenario_log = scenario_log,
+                           quests_logs = quests_logs)
   }
-  return(session)
+  return(response)
 }
