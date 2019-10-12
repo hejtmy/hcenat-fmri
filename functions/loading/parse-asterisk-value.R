@@ -1,3 +1,4 @@
+library(stringr)
 #the header files ar writen in this format
 ## PROPERTY NAME: *VALUE*
 ## PROPERTY NAME 2: *VALUE 2*

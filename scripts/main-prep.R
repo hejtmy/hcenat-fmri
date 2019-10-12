@@ -16,7 +16,7 @@ subject_table <- subject_table[c(16, 18), ]
 
 source('scripts/loading.r')
 
-#loads from the subjectList table
+# loads from the subjectList table
 # dir = dir of all data
 # paritcipatn code = code overall
 # session = session
@@ -26,7 +26,6 @@ subject_dir <- paste0(data_dir, subject_code, "/MRI/", "Session1/")
 
 ls <- open_experiment_logs(subject_dir)
 #for each experiment_log, we open player log, scenario log and appropriate quest logs
-self$trial_sets = list()
 for (i in 1:length(ls)){
   experiment_log <- ls[[i]]
   player_log <- open_player_log(experiment_log, F)
