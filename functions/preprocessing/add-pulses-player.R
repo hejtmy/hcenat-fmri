@@ -8,6 +8,10 @@ add_pulses_player <- function(quests_set, quests_log, player_log){
   }
   iSynchro <- which(player_log$Input == "fMRISynchro")
   nSynchro <- length(iSynchro)
+  if(length(nSynchro) < 1){
+    warning('there are no Synchropulses in the player log')
+    return(player_log)
+  } 
   for(s in 1:nSynchro){
     player_log$pulse[iSynchro[s]:iSynchro[nSynchro]] <- s
   }

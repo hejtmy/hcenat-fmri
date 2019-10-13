@@ -2,13 +2,17 @@ open_player_log <- function(experiment_log, override = F){
   directory <- dirname(experiment_log$filename)
   ptr <- paste(experiment_log$header$Patient, "_player_", experiment_log$header$Time, sep="", collapse="")
   logs <- list.files(directory, pattern = ptr, full.names = T)
-  log_columns_types <- c(Time="numeric",Position="numeric",Rotation.X="numeric",Rotation.Y="numeric", Focus = "character", FPS = "numeric", Input="character")
-  preprocessed_log_column_types = c(log_columns_types, Position.x="numeric", Position.y="numeric", Position.z="numeric",distance="numeric",cumulative_distance="numeric")
+  log_columns_types <- c(Time="numeric", Position="string", Rotation.X="numeric",
+                         Rotation.Y="numeric", Focus = "character", FPS = "numeric", 
+                         Input="character")
+  preprocessed_log_column_types = c(log_columns_types, Position.x = "numeric", 
+                                    Position.y = "numeric", Position.z = "numeric",
+                                    distance = "numeric", cumulative_distance="numeric")
   if(length(logs) < 1){
     SmartPrint(c("!!!Could not find the file for player log!!!", ptr))
     return(NULL)
   }
-  if (length(logs)>1){
+  if (length(logs) > 1){
     #check if there is a preprocessed player file
     preprocessed_index <- grep("*_preprocessed",logs)
     if(length(preprocessed_index) > 0){
@@ -30,8 +34,6 @@ open_player_log <- function(experiment_log, override = F){
   idxTop <- which(grepl('\\*\\*\\*\\*\\*',text))
   idxBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
   pos_tab <- fread(log, header=T, sep=";", dec=".", skip=idxBottom, stringsAsFactors=F, colClasses = log_columns_types)
-  #deletes the last column - it's there for the easier logging from unity 
-  # - its here because of how preprocessing works
-  pos_tab[,ncol(pos_tab):=NULL]
+  pos_tab[, ncol(pos_tab) := NULL]
   return(pos_tab)
 }

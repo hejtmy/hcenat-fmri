@@ -1,4 +1,4 @@
-open_experiment_logs = function(directory = ""){
+open_experiment_logs <- function(directory = ""){
   ls <- list()
   #needs to check if we got only one file out
   logs <- list.files(directory, pattern = "_experiment_", full.names = T)
