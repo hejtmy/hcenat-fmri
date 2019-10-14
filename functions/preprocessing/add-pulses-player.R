@@ -1,19 +1,28 @@
-add_pulses_player <- function(quests_set, quests_log, player_log){
-  player_log$pulse <- NA_integer_
-  player_log$quest <- NA_integer_
-  for(i in 1:nrow(quests_set)){
-    quest <- get_quest(quests_set, quests_log, i)
+#' Adds pulses information to the player log
+#'
+#' @param df_quests dataframe as created by the 
+#' @param quests_logs 
+#' @param df_player 
+#'
+#' @return df_player with added quest and pulse columns
+#'
+#' @examples
+add_pulses_player <- function(df_quests, quests_logs, df_player){
+  df_player$pulse <- NA_integer_
+  df_player$quest <- NA_integer_
+  for(i in 1:nrow(df_quests)){
+    quest <- get_quest(df_quests, quests_logs, i)
     quest_times <- get_quest_timewindow(quest, include_teleport = T) #can be null
-    player_log[Time > quest_times$start & Time < quest_times$finish, quest := i]
+    df_player[Time > quest_times$start & Time < quest_times$finish, quest := i]
   }
-  iSynchro <- which(player_log$Input == "fMRISynchro")
+  iSynchro <- which(df_player$Input == "fMRISynchro")
   nSynchro <- length(iSynchro)
   if(length(nSynchro) < 1){
     warning('there are no Synchropulses in the player log')
-    return(player_log)
+    return(df_player)
   } 
-  for(s in 1:nSynchro){
-    player_log$pulse[iSynchro[s]:iSynchro[nSynchro]] <- s
+  for(iPulse in 1:nSynchro){
+    df_player$pulse[iSynchro[iPulse]:iSynchro[nSynchro]] <- iPulse
   }
-  return(player_log)
+  return(df_player)
 }

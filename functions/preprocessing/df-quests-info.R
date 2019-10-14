@@ -1,13 +1,21 @@
-df_quests_info <- function(quest_logs){
-  if (length(quest_logs) == 0) next
+#' Createst summary data frame with all the quests for some functions
+#'
+#' @param quests_logs all quests as loaded by the read unity data
+#'
+#' @return data.frame with basic quests information
+#' @export
+#'
+#' @examples
+df_quests_info <- function(quests_logs){
+  if (length(quests_logs) == 0) next
   df_result <- data.frame(id = numeric(0), 
                    order_session = numeric(0), 
                    name = character(0), 
                    type = character(0), 
                    order_set = numeric(0))
   order_session <- 1
-  for(i in 1:length(quest_logs)){
-    quest_info <- get_quest_info(quest_logs[i])
+  for(i in 1:length(quests_logs)){
+    quest_info <- get_quest_info(quests_logs[i])
     df_result <- rbindlist(list(df_result, list(as.numeric(quest_info$id), order_session, quest_info$name, quest_info$type, i)))
     order_session <- order_session + 1
   }
