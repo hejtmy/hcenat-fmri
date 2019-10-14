@@ -4,8 +4,7 @@ open_scenario_log <- function(experiment_log){
   ptr <- paste("_", escape_quest_regex(experiment_log$scenario$Name), "_", experiment_log$scenario$Timestamp, sep="")
   log <- list.files(directory, pattern = ptr, full.names = T)[1]
   if(!file.exists(log)){
-    print(paste("!!!Could not find the file for scenario log!!!", ptr, sep = " "))
-    print(ptr)
+    warning("Could not find the file for scenario log with pattern ", ptr)
     return(NULL)
   }
   scenario_log <- open_quest_log(log)
