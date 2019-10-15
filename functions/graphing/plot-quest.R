@@ -15,7 +15,7 @@ plot_quest_path <- function(quest, df_player, experiment_log, img_path){
     geom_navr_path(obj, size=1, color="blue")
   start_finish <- get_quest_start_finish_positions(df_player, quest)
   plt <- plt + navr::geom_navr_points(start_finish)
-  plt <- plt + geom_navr_limits(obj)
+  plt <- plt + xlim(PLOT_LIMITS$x) + ylim(PLOT_LIMITS$y)
   #plt <- draw_pointing_participant(plt, quest_set, trial_sets, quest_id)
   return(plt)
 }
