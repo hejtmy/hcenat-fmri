@@ -1,8 +1,8 @@
 #' Adds pulses information to the player log
 #'
-#' @param df_quests dataframe as created by the 
-#' @param quests_logs 
-#' @param df_player 
+#' @param df_quests dataframe as created by the df_quests_info function
+#' @param quests_logs quest logs loaded by the read_unity_data function
+#' @param df_player player log loaded by the read_unity_data funtcion
 #'
 #' @return df_player with added quest and pulse columns
 #'
