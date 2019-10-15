@@ -11,4 +11,5 @@ df_player <- add_pulses_player(df_quests, session$quests_logs, session$player_lo
 
 df_pointing_results(df_quests, session$quests_logs, session$player_log)
 
+quest <- get_quest(df_quests, session$quests_logs, 2)
 plot_quest_path(quest, df_player, session$experiment_log, img_path)

@@ -1,7 +1,6 @@
 #' Title
 #'
 #' @param quest_set 
-#' @param trial_sets 
 #' @param quest 
 #' @param include_teleport 
 #'
@@ -20,7 +19,6 @@ get_quest_start_finish_positions <- function(df_player, quest, include_teleport 
 
 player_position_at_time <- function(df_player, time){
   position <- df_player[Time > time, .SD[1, c(Position.x, Position.z)]]
-  ## Some validation?
   return(position)
 }
 
