@@ -37,3 +37,4 @@ quest_step_position = function(quest, iStep){
   if(step$Transform == "NO transform") stop("Step has no transform")
   return(text_to_vector3(step$Transform)[c(1,3)])
 }
+
