@@ -1,3 +1,4 @@
+library(stringr)
 #' Createst summary data frame with all the quests for some functions
 #'
 #' @param quests_logs all quests as loaded by the read unity data
@@ -12,7 +13,8 @@ df_quests_info <- function(quests_logs){
                    order_session = numeric(0), 
                    name = character(0), 
                    type = character(0), 
-                   order_set = numeric(0))
+                   order_set = numeric(0),
+                   stringsAsFactors = FALSE)
   order_session <- 1
   for(i in 1:length(quests_logs)){
     quest_info <- get_quest_info(quests_logs[i])

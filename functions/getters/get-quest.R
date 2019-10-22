@@ -32,7 +32,7 @@ get_quest <- function(df_quests, quests_logs, i_quest, quest_types = NULL){
     quest_lines <- filter(df_quests, id == i_quest & type %in% quest_types)
     if(!(nrow(quest_lines) > 0)) return(NULL) 
     for(i in 1:nrow(quest_lines)){
-      quest_line = quest_lines[i, ]
+      quest_line <- quest_lines[i, ]
       ls[[quest_types[i]]] <- quests_logs[quest_line$order_set][[1]]
       ls[[quest_types[i]]]$name <- dplyr::select(quest_line, name)[[1]]
       ls[[quest_types[i]]]$order_session <- dplyr::select(quest_line, order_session)[[1]]

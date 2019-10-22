@@ -1,9 +1,10 @@
+library(dplyr)
 #' Creates pointing results data frame for a single participant data
 #'
 #' @param df_quests dataframe as created by the df_quests_info function
 #' @param quests_logs quest logs loaded by the read_unity_data function
 #' @param df_player player log loaded by the read_unity_data funtcion
-#' @param correct_angles angles loaded from the file
+#' @param correct_angles dataframe with angles loaded from the file to fill for the B tasks
 #'
 #' @return
 df_pointing_results <- function(df_quests, quests_logs, df_player, correct_angles = NULL){
@@ -35,7 +36,7 @@ df_pointing_results <- function(df_quests, quests_logs, df_player, correct_angle
         select(target_angle)
       correct_angle <- if(nrow(correct_angle) == 1){ correct_angle$target_angle } else { NULL }
     }
-    quest_pointing <- pointing_accuracy(df_quests, df_player, quest, choosing_times, correct_angle) #possble to get NAS in the data frame
+    quest_pointing <- pointing_accuracy(df_player, quest, choosing_times, correct_angle) #possble to get NAS in the data frame
     quest_pointing <- quest_pointing %>% mutate(quest_order_session = quest_order_session)
     df_results <- rbindlist(list(df_results, quest_pointing), fill = TRUE)
   }

@@ -7,7 +7,7 @@
 #' @export
 #'
 #' @examples
-get_quest_timewewindow <- function(quest, include_teleport = TRUE){
+get_quest_timewindow <- function(quest, include_teleport = TRUE){
   if(include_teleport){
     start_time <- quest$data$TimeFromStart[quest$data$Action == "Quest started"]
   } else {
