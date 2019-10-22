@@ -19,8 +19,13 @@ plot_quest_path(get_quest(df_quests, session$quests_logs, 3), df_player, session
 
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 participant <- "HCE_E_1"
-data <- load_participant(data_dir, participant, 1)
+data <- load_participant(data_dir, participant, 2)
 
 df_quests <- df_quests_info(data[[1]]$quests_logs)
 pointing_results(df_quests, data[[1]]$quests_logs, data[[1]]$player_log, correct_angles)
 quests_summary(df_quests, data[[1]]$quests_logs, data[[1]]$player_log)
+
+
+
+
+res <- quests_summary_participant(data[[1]])
