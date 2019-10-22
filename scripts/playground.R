@@ -4,7 +4,6 @@ library(dplyr)
 sapply(list.files("functions", full.names = T, recursive = T), source)
 
 img_path <- "images/megamap5.png"
-folder <- "F:/projects/hcenat/Data/HCE_E_1/MRI/Session1"
 folder <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/HCE_E_14/MRI/Session1"
 session <- read_unity_data(folder)
 
@@ -20,4 +19,8 @@ plot_quest_path(get_quest(df_quests, session$quests_logs, 3), df_player, session
 
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 participant <- "HCE_E_1"
-data <- load_participant(data_dir, participant)
+data <- load_participant(data_dir, participant, 1)
+
+df_quests <- df_quests_info(data[[1]]$quests_logs)
+pointing_results(df_quests, data[[1]]$quests_logs, data[[1]]$player_log, correct_angles)
+quests_summary(df_quests, data[[1]]$quests_logs, data[[1]]$player_log)

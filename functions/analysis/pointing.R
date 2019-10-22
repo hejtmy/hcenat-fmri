@@ -7,7 +7,7 @@ library(dplyr)
 #' @param correct_angles dataframe with angles loaded from the file to fill for the B tasks
 #'
 #' @return
-df_pointing_results <- function(df_quests, quests_logs, df_player, correct_angles = NULL){
+pointing_results <- function(df_quests, quests_logs, df_player, correct_angles = NULL){
   if(is.null(df_quests)) return(NULL)
   target_angle <- numeric(nrow(df_quests))
   chosen_angle <- numeric(nrow(df_quests))
@@ -34,9 +34,9 @@ df_pointing_results <- function(df_quests, quests_logs, df_player, correct_angle
       correct_angle <- correct_angles %>% 
         filter(name == quest$name) %>% 
         select(target_angle)
-      correct_angle <- if(nrow(correct_angle) == 1){ correct_angle$target_angle } else { NULL }
+      correct_angle <- if(nrow(correct_angle) == 1){correct_angle$target_angle} else { NULL }
     }
-    quest_pointing <- pointing_accuracy(df_player, quest, choosing_times, correct_angle) #possble to get NAS in the data frame
+    quest_pointing <- quest_pointing_accuracy(df_player, quest, choosing_times, correct_angle) #possble to get NAS in the data frame
     quest_pointing <- quest_pointing %>% mutate(quest_order_session = quest_order_session)
     df_results <- rbindlist(list(df_results, quest_pointing), fill = TRUE)
   }
@@ -51,7 +51,7 @@ df_pointing_results <- function(df_quests, quests_logs, df_player, correct_angle
 #' @param choosing_times - evet times of ChooseDirections in Unity log - data.frame
 #' @param quest as returend by get_quest
 #' @return data.frame 
-pointing_accuracy <- function(df_player, quest, choosing_times, correct_angle = NULL){
+quest_pointing_accuracy <- function(df_player, quest, choosing_times, correct_angle = NULL){
   ALLOWED_DIFFERENCE <- 0.1
   pointing_times <- get_step_timespans(quest, "Point in Direction")
   n_pointing <- nrow(pointing_times)

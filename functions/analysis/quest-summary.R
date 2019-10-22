@@ -1,10 +1,27 @@
+#' Title
+#'
+#' @param df_quests dataframe as created by the df_quests_info function
+#' @param df_player 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+quests_summary <- function(df_quests, quests_logs, df_player){
+  df_result <- data.frame()
+  for(i in 1:nrow(df_quests)){
+    quest <- get_quest(df_quests, quests_logs, i)
+    quest_info <- quest_summary(quest, df_player)
+    df_result <- rbind(df_result, as.data.frame(quest_info))
+  }
+  return(df_result)
+}
+
 quest_summary <- function(quest, df_player){
   result <- list()
   quest_times <- get_quest_timewindow(quest, include_teleport = F) #can be null
   result$Time <- ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
-  
   player_log <- get_quest_player_log(quest, df_player, include_teleport = FALSE)
-  
   #calculating sky distance from start to goal
   start_stop <- get_quest_start_finish_positions(player_log, quest, include_teleport = FALSE)
   if(!is.null(start_stop)) result$sky_distance <- navr::euclid_distance(start_stop$start, start_stop$finish)
