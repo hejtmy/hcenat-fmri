@@ -18,4 +18,4 @@ df_pointing_results(df_quests, session$quests_logs, session$player_log, correct_
 ## Get trials which were finished
 
 quest <- get_quest(df_quests, session$quests_logs, 2)
-plot_quest_path(quest, df_player, session$experiment_log, img_path)
+plot_quest_path(get_quest(df_quests, session$quests_logs, 3), df_player, session$experiment_log, img_path)

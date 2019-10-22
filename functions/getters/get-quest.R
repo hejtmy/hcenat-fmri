@@ -47,5 +47,5 @@ get_quest <- function(df_quests, quests_logs, i_quest, quest_types = NULL){
 #'
 #' @param quest 
 was_quest_finished <- function(quest){
-  return(!is.null(get_last_step_time(quest)))
+  return(!is.null(get_last_step_finished_time(quest)))
 }

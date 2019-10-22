@@ -8,12 +8,12 @@
 #'
 #' @examples
 add_pulses_player <- function(df_quests, quests_logs, df_player){
-  df_player$pulse <- NA_integer_
-  df_player$quest <- NA_integer_
+  df_player$pulse_id <- NA_integer_
+  df_player$quest_id <- NA_integer_
   for(i in 1:nrow(df_quests)){
     quest <- get_quest(df_quests, quests_logs, i)
-    quest_times <- get_quest_timewindow(quest, include_teleport = T) #can be null
-    df_player[Time > quest_times$start & Time < quest_times$finish, quest := i]
+    quest_times <- get_quest_timewindow(quest, include_teleport = FALSE) #can be null
+    df_player[Time > quest_times$start & Time < quest_times$finish, quest_id := i]
   }
   iSynchro <- which(df_player$Input == "fMRISynchro")
   nSynchro <- length(iSynchro)

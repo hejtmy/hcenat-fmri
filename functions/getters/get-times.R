@@ -54,7 +54,7 @@ get_step_time <- function(quest, step_name, step_action = "StepActivated", step_
   return(stepTime)
 }
 
-get_last_step_time <- function(quest){
+get_last_step_finished_time <- function(quest){
   return(get_step_time(quest, step_action = "StepFinished", step_id = max(quest$steps$ID)))
 }
 #' Get times of evets happening in player log
@@ -89,3 +89,7 @@ get_step_timespans <- function(quest, step_name){
   return(step_times)
 }
 
+get_quest_finish_time <- function(quest){
+  t <- quest$data$TimeFromStart[quest$data$Action == "Quest finished"]
+  return(t)
+}

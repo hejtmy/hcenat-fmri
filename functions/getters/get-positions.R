@@ -11,13 +11,13 @@
 get_quest_start_finish_positions <- function(df_player, quest, include_teleport = FALSE){
   response <- list()
   time_teleport_finished <- get_quest_timewindow(quest, include_teleport = include_teleport)$start
-  response[["start"]] <- player_position_at_time(df_player, time_teleport_finished)
+  response[["start"]] <- get_player_position_at_time(df_player, time_teleport_finished)
   if(is.null(response[["start"]])) return(NULL)
   response[["finish"]] <- get_last_quest_position(quest)
   return(response)
 }
 
-player_position_at_time <- function(df_player, time){
+get_player_position_at_time <- function(df_player, time){
   position <- df_player[Time > time, .SD[1, c(Position.x, Position.z)]]
   return(position)
 }
