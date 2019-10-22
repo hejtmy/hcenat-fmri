@@ -15,7 +15,9 @@ correct_angles <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
 
 df_pointing_results(df_quests, session$quests_logs, session$player_log, correct_angles)
 
-## Get trials which were finished
-
 quest <- get_quest(df_quests, session$quests_logs, 2)
 plot_quest_path(get_quest(df_quests, session$quests_logs, 3), df_player, session$experiment_log, img_path)
+
+data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+participant <- "HCE_E_1"
+data <- load_participant(data_dir, participant)
