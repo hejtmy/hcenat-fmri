@@ -1,0 +1,21 @@
+quest_order_session,pointing_order,target_angle,id,name,type,set_id,order_set,participant_id,experiment
+1,1,86.5496,1,B1-Kadernice-Sipka,learn,1,1,vzor_ukazovani,MRI
+3,1,176.8495,3,B2-Amsterdam-Sipka,learn,1,3,vzor_ukazovani,MRI
+5,1,218.7495,5,B3-Univerzitni Knihovna-Sipka,learn,1,5,vzor_ukazovani,MRI
+7,1,179.2495,7,B4-Banka-Sipka,learn,1,7,vzor_ukazovani,MRI
+9,1,236.9495,9,B5-Dokovy Sklad-Sipka,learn,1,9,vzor_ukazovani,MRI
+11,1,303.6495,11,B6-Pole-Sipka,learn,1,11,vzor_ukazovani,MRI
+13,1,346.9495,13,B7-Skala-Sipka,learn,1,13,vzor_ukazovani,MRI
+15,1,77.6495,15,B8-Rodinne domky-Sipka,learn,1,15,vzor_ukazovani,MRI
+17,1,284.1495,17,B9-Posta-Sipka,learn,1,17,vzor_ukazovani,MRI
+19,1,235.6495,19,B10-Bludiste-Sipka,learn,1,19,vzor_ukazovani,MRI
+1,1,194.6496,1,B1-Vodopad - Sipka,learn,1,,,
+3,1,273.1496,3,B2-Skola - Sipka,learn,1,,,
+5,1,103.2495,5,B3-Hotel - Sipka,learn,1,,,
+7,1,15.9496,7,B4-Benzinka - Sipka,learn,1,,,
+9,1,285.6496,9,B5-Lekarna- Sipka,learn,1,,,
+11,1,24.0496,11,B6-Sidliste - Sipka,learn,1,,,
+13,1,356.2495,13,B7-Vyhlidka - Sipka,learn,1,,,
+15,1,126.8495,15,B8-Hriste- Sipka,learn,1,,,
+17,1,289.1496,17,B9-Park - Sipka,learn,1,,,
+19,1,178.2496,19,B10-Amsterdam - Sipka,learn,1,,,
