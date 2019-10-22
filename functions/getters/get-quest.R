@@ -42,3 +42,10 @@ get_quest <- function(df_quests, quests_logs, i_quest, quest_types = NULL){
   }
   return(ls)
 }
+
+#' Returns logical if the quest was succesfully finished
+#'
+#' @param quest 
+was_quest_finished <- function(quest){
+  return(!is.null(get_last_step_time(quest)))
+}

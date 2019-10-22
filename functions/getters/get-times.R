@@ -54,6 +54,9 @@ get_step_time <- function(quest, step_name, step_action = "StepActivated", step_
   return(stepTime)
 }
 
+get_last_step_time <- function(quest){
+  return(get_step_time(quest, step_action = "StepFinished", step_id = max(quest$steps$ID)))
+}
 #' Get times of evets happening in player log
 #'
 #' @param df_player 
@@ -85,3 +88,4 @@ get_step_timespans <- function(quest, step_name){
   colnames(step_times) <- c("StepID", "StepActivated", "StepFinished")
   return(step_times)
 }
+
