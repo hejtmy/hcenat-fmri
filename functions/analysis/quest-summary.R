@@ -20,15 +20,16 @@ quests_summary <- function(df_quests, quests_logs, df_player){
 quests_summary_participant <- function(data, correct_angles = NULL){
   df_quests <- df_quests_info(data$quests_logs)
   pointing <- pointing_results(df_quests, data$quests_logs, data$player_log, correct_angles)
-  sum <- quests_summary(df_quests, data$quests_logs, data$player_log)
-  return(list(pointing = pointing, summary = sum))
+  result <- quests_summary(df_quests, data$quests_logs, data$player_log)
+  if(!is.null(pointing)) result <- merge(pointing, result, by=c("name", "quest_order_session"))
+  return(result)
 }
 
 quest_summary <- function(quest, df_player){
   result <- list()
   quest_times <- get_quest_timewindow(quest, include_teleport = F) #can be null
   result$name <- quest$name
-  result$session_order <- quest$order_session
+  result$quest_order_session <- quest$order_session
   result$time <- ifelse(is.null(quest_times), NA, diff(c(quest_times$start,quest_times$finish)))
   player_log <- get_quest_player_log(quest, df_player, include_teleport = FALSE)
   #calculating sky distance from start to goal
