@@ -3,6 +3,7 @@ library(navr)
 library(dplyr)
 sapply(list.files("functions", full.names = T, recursive = T), source)
 
+img_path <- "images/megamap5.png"
 folder <- "F:/projects/hcenat/Data/HCE_E_1/MRI/Session1"
 folder <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/HCE_E_14/MRI/Session1"
 session <- read_unity_data(folder)
