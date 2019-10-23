@@ -32,17 +32,4 @@ warnings()
 
 ## loading final ----
 df_preprocessing <- load_participant_preprocessing_status()
-participants <- list()
-for(i in 1:nrow(df_preprocessing)){
-  line <- df_preprocessing[i,]
-  participant_data <- list()
-  if(line$session1_ok){
-    data <- load_participant(data_dir, participant, 1)
-    participant_data[[1]] <- data[[1]]
-  }
-  if(line$session2_ok){
-    data <- load_participant(data_dir, participant, 2)
-    participant_data[[2]] <- data[[1]]
-  }
-  participants[[line$ID]] <- participant_data
-}
+participant <- load_participants(data_dir, c("HCE_E_7"), df_preprocessing)

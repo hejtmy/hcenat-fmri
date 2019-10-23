@@ -7,8 +7,8 @@
 #' @export
 #'
 #' @examples
-load_participants <- function(data_dir, ids=c()){
-  df_preprocessing <- load_participant_preprocessing_status()
+load_participants <- function(data_dir, ids=c(), df_preprocessing = NULL){
+  if(is.null(df_preprocessing)) df_preprocessing <- load_participant_preprocessing_status()
   participants <- list()
   if(length(ids) != 0) df_preprocessing <- df_preprocessing %>% filter(ID %in% ids)
   for(i in 1:nrow(df_preprocessing)){
