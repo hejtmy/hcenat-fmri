@@ -50,3 +50,9 @@ which((diff(participant$HCE_E_14[[1]]$player_log %>% filter(Input == "fMRISynchr
 
 # Soilution
 pokus <- add_pulses_participant(participant$HCE_K_23[[2]])
+
+
+## MRI -----
+folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
+names_file <- file.path(data_dir, "../MRI-data-tomecek/subs_20190830_1422.txt")
+components <- load_mri(folder, names_file)
