@@ -20,7 +20,7 @@ load_participants <- function(data_dir, ids=c(), df_preprocessing = NULL){
     }
     if(line$session2_ok){
       data <- load_participant(data_dir, line$ID, 2)
-      participant_data[[2]] <- data[[1]]
+      participant_data[[2]] <- data[[2]]
     }
     participants[[line$ID]] <- participant_data
   }
