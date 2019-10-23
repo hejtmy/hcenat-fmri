@@ -1,4 +1,5 @@
 library(dplyr)
+
 #' Creates pointing results data frame for a single participant data
 #'
 #' @param df_quests dataframe as created by the df_quests_info function
@@ -90,6 +91,19 @@ quest_pointing_accuracy <- function(df_player, quest, choosing_times, correct_an
     df[i, ] <- c(i, target_angle, chosen_angle, quest_end_angle, point_start, point_end)
   }
   return(df)
+}
+
+get_correct_angle <- function(quest, df_player){
+  if(!exists("CORRECT_ANGLES")){
+    stop("You need to load the CORRECT_ANGLES first from the data folder") 
+  }
+  quest_start_finish <- get_quest_start_finish_positions(df_player, quest, include_teleport = FALSE)
+  if(quest$name %in% CORRECT_ANGLES$name){
+    correct_angle <- CORRECT_ANGLES$target_angle[CORRECT_ANGLES$name == quest$name]
+  } else {
+    correct_angle <- angle_from_positions(quest_start_finish$start, quest_start_finish$finish)
+  }
+  return(correct_angle)
 }
 
 #' Needs to be in order FROM -> TO, otherwise can provide weird values

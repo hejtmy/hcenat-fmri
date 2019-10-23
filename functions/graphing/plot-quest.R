@@ -1,7 +1,6 @@
 MAP_LIMITS <- list(x=c(-1378,1622), y=c(-1367,1133))
 PLOT_LIMITS <- list(x=c(-1000,1000), y=c(-800,500))
 
-
 plot_quest_path.participant <- function(data, quest_id, img_path){
   quest <- get_quest(data$quests_logs, quest_id)
   return(plot_quest_path(quest, data$player_log, data$experiment_log, img_path))
@@ -18,11 +17,16 @@ plot_quest_path <- function(quest, df_player, experiment_log, img_path){
   obj <- prepare_quest_path(quest, df_player, experiment_log)
   plt <- ggplot() + theme_void() + 
     geom_navr_backround(img_path, obj$area_boundaries$x, obj$area_boundaries$y) + 
-    geom_navr_path(obj, size=1, color="blue")
+    geom_navr_path(obj, size = 1, color="blue")
   start_finish <- get_quest_start_finish_positions(df_player, quest)
+  
+  pointed_angle <- obj$data %>% filter(Input == "ChooseDirection") %>% .$Rotation.X
+  # add the potential correct angle for B tasks
+  correct_angle <- get_correct_angle(quest, df_player)
   plt <- plt + navr::geom_navr_points(start_finish)
   plt <- plt + xlim(PLOT_LIMITS$x) + ylim(PLOT_LIMITS$y)
-  #plt <- draw_pointing_participant(plt, quest_set, trial_sets, quest_id)
+  plt <- plt + navr::geom_navr_direction(start_finish$start, correct_angle, color="green", length = 100, size=1.25)
+  plt <- plt + navr::geom_navr_direction(start_finish$start, pointed_angle, color="blue", length = 100, size=1.25)
   return(plt)
 }
 
@@ -30,22 +34,4 @@ prepare_quest_path <- function(quest, df_player, experiment_log){
   df_player <- get_quest_player_log(quest, df_player, include_teleport = FALSE)
   obj <- as.navr(df_player, experiment_log)
   return(obj)
-}
-
-#' Draws by default learnd and return path of a quest
-#' 
-#' @param quest_set provided by the UnityAnalysis
-#' @param trial_sets data saved in UnityAnalysisClass
-#' @param quest_id ID of the quest - not session id, but the order of a quest
-#' @param img_path path to the image that will be overwrote
-#' @return graph of the learned and trial path
-draw_pointing_participant <- function(plt, quest_set, trial_sets, quest_id){
-  #this is only for buffering purposes - could be done int he add_pointing function, but would be more intensive
-  choosings <- get_event_times(trial_sets, "ChooseDirection")
-  #this is TODO - make it clearer - getting too much of quest data in each function
-  quest <- get_quest(quest_set, quest_id)
-  start_stop <- get_quest_start_finish_positions(quest_set, trial_sets, quest, include_teleport = F)
-  pointing_df <- prepare_pointing_quest(quest_set, trial_sets, quest, choosings)
-  plt <- add_pointing_arrows(plt, pointing = pointing_df, start_stop = start_stop)
-  return(plt)
 }

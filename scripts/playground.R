@@ -2,8 +2,8 @@ library(data.table)
 library(navr)
 library(dplyr)
 sapply(list.files("functions", full.names = T, recursive = T), source)
+CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
 
-correct_angles <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 participant <- "HCE_E_1"
 img_path <- "images/megamap5.png"
@@ -38,6 +38,9 @@ warnings()
 ## loading final ----
 df_preprocessing <- load_participant_preprocessing_status()
 participant <- load_participants(data_dir, c("HCE_K_23"), df_preprocessing)
+
+quest <- get_quest(participant$HCE_K_23[[1]]$quests_logs, 13)
+get_correct_angle(quest, participant$HCE_K_23[[1]]$player_log)
 plot_quest_path.participant(participant$HCE_K_23[[2]], 3, img_path)
 
 ## investigation of pulses ----
