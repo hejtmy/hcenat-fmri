@@ -22,7 +22,7 @@ pointing_results <- function(df_quests, quests_logs, df_player, correct_angles =
   }
   # FOR EACH QUEST
   for(quest_order_session in df_quests$order_session){
-    quest <- get_quest(df_quests, quests_logs, quest_order_session)
+    quest <- get_quest(quests_logs, quest_order_session)
     pointing_times <- get_step_timespans(quest, "Point in Direction")
     if (is.null(pointing_times)) next #skipping trials without pointing
     if (nrow(pointing_times) > 2){

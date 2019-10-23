@@ -18,7 +18,7 @@ quest <- get_quest(df_quests, data[[1]]$quests_logs, 12)
 quest_summary(quest, data[[1]]$player_log)
 quests_summary(df_quests, data[[1]]$quests_logs, data[[1]]$player_log)
 
-plot_quest_path(get_quest(df_quests, session$quests_logs, 3), df_player, session$experiment_log, img_path)
+plot_quest_path(get_quest(data[[1]]$quests_logs, 3), data[[1]]$player_log, data[[1]]$experiment_log, img_path)
 
 ## participant checking ----
 all_participants <- list.dirs(data_dir, recursive = FALSE, full.names = FALSE)

@@ -10,7 +10,7 @@
 quests_summary <- function(df_quests, quests_logs, df_player){
   df_result <- data.frame()
   for(i in 1:nrow(df_quests)){
-    quest <- get_quest(df_quests, quests_logs, i)
+    quest <- get_quest(quests_logs, i)
     quest_info <- quest_summary(quest, df_player)
     df_result <- rbind(df_result, as.data.frame(quest_info))
   }
