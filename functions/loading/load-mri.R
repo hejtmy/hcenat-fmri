@@ -1,3 +1,12 @@
+#' Loads component files from folder and names columns as per names file
+#'
+#' @param folder 
+#' @param names_file 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 load_mri <- function(folder, names_file){
   ptr <- "\'HCE_([CP0-9]+)_.*'"
   participant_codes <- readLines(names_file)
