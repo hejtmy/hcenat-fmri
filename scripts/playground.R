@@ -33,6 +33,15 @@ warnings()
 
 ## loading final ----
 df_preprocessing <- load_participant_preprocessing_status()
-participant <- load_participants(data_dir, c("HCE_E_7"), df_preprocessing)
+participant <- load_participants(data_dir, c("HCE_E_14"), df_preprocessing)
 
 plot_quest_path.participant(participant$HCE_E_7[[1]], 2, img_path)
+
+
+## investigation of pulses ----
+# difference between 1st and last
+sum(diff(participant$HCE_E_14[[1]]$player_log %>% filter(Input == "fMRISynchro") %>% .$Time))
+which((diff(participant$HCE_E_14[[1]]$player_log %>% filter(Input == "fMRISynchro") %>% .$Time) - 3))
+
+# Soilution
+pokus <- add_pulses_participant(participant$HCE_E_14[[1]])
