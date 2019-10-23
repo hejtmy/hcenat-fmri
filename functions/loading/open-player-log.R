@@ -9,7 +9,7 @@ open_player_log <- function(experiment_log, override = F){
                                     Position.y = "numeric", Position.z = "numeric",
                                     distance = "numeric", cumulative_distance="numeric")
   if(length(logs) < 1){
-    SmartPrint(c("!!!Could not find the file for player log!!!", ptr))
+    warning("!!!Could not find the file for player log with pattern", ptr)
     return(NULL)
   }
   if (length(logs) > 1){
@@ -24,7 +24,7 @@ open_player_log <- function(experiment_log, override = F){
         return(fread(log, header=T, sep=";",dec=".", stringsAsFactors = F, colClasses = preprocessed_log_column_types))
       }
     } else{
-      print("There is more player logs with appropriate timestamp in the same folder. Have you named and stored everything appropriately?")
+      warning("There is more player logs with appropriate timestamp in the same folder. Have you named and stored everything appropriately?")
       return(NULL)
     }
   } else {
@@ -35,5 +35,6 @@ open_player_log <- function(experiment_log, override = F){
   idxBottom <- which(grepl('\\-\\-\\-\\-\\-',text))
   pos_tab <- fread(log, header=T, sep=";", dec=".", skip=idxBottom, stringsAsFactors=F, colClasses = log_columns_types)
   pos_tab[, ncol(pos_tab) := NULL]
+  pos_tab <- preprocess_player_log(pos_tab)
   return(pos_tab)
 }

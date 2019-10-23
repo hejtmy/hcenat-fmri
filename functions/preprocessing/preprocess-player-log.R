@@ -4,7 +4,8 @@ preprocess_player_log <- function(position_tab){
   }
   if (!("cumulative_distance" %in% colnames(position_tab))){
     position_tab <- add_distance_walked(position_tab)
-  } 
+  }
+  return(position_tab)
 }
 
 #turns vector columns in string "(x, y, z)" into three columns(Position.x, Position.y, Position.z) and returns the table
@@ -25,7 +26,7 @@ vector3_to_columns <- function(tab, column_name){
 add_distance_walked <- function(position_table){
   distances <- numeric(0)
   for (i in 2:nrow(position_table)){
-    position_table[c(i - 1, i),distance := EuclidDistanceColumns(.(Position.x, Position.z)[1], .(Position.x, Position.z)[2])]
+    position_table[c(i - 1, i),distance := euclid_distance_columns(.(Position.x, Position.z)[1], .(Position.x, Position.z)[2])]
     #distances = c(distances,EuclidDistance(position_table[i,list(Position.x,Position.z)],position_table[i-1,list(Position.x,Position.z)]))
   }
   position_table[, cumulative_distance := cumsum(distance)]
