@@ -21,7 +21,7 @@ quests_summary_participant <- function(data, correct_angles = NULL){
   df_quests <- df_quests_info(data$quests_logs)
   pointing <- pointing_results(df_quests, data$quests_logs, data$player_log, correct_angles)
   result <- quests_summary(df_quests, data$quests_logs, data$player_log)
-  if(!is.null(pointing)) result <- merge(pointing, result, by=c("name", "quest_order_session"))
+  if(!is.null(pointing)) result <- merge(pointing, result, by=c("name", "quest_order_session"), all=TRUE)
   return(result)
 }
 
