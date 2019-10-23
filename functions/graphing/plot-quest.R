@@ -1,6 +1,12 @@
 MAP_LIMITS <- list(x=c(-1378,1622), y=c(-1367,1133))
 PLOT_LIMITS <- list(x=c(-1000,1000), y=c(-800,500))
 
+
+plot_quest_path.participant <- function(data, quest_id, img_path){
+  quest <- get_quest(data$quests_logs, quest_id)
+  return(plot_quest_path(quest, data$player_log, data$experiment_log, img_path))
+}
+
 #' Draws by default learnd and return path of a quest
 #' 
 #' @param quest_set provided by the UnityAnalysis

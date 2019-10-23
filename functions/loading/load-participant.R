@@ -15,11 +15,11 @@ load_participants <- function(data_dir, ids=c(), df_preprocessing = NULL){
     line <- df_preprocessing[i,]
     participant_data <- list()
     if(line$session1_ok){
-      data <- load_participant(data_dir, participant, 1)
+      data <- load_participant(data_dir, line$ID, 1)
       participant_data[[1]] <- data[[1]]
     }
     if(line$session2_ok){
-      data <- load_participant(data_dir, participant, 2)
+      data <- load_participant(data_dir, line$ID, 2)
       participant_data[[2]] <- data[[1]]
     }
     participants[[line$ID]] <- participant_data
@@ -41,7 +41,7 @@ load_participants <- function(data_dir, ids=c(), df_preprocessing = NULL){
 load_participant <- function(data_dir, id, sessions = c(1,2)){
   response <- list()
   for(session in sessions){
-    folder <- file.path(data_dir, id, "MRI", paste0("Session",session))
+    folder <- file.path(data_dir, id, "MRI", paste0("Session", session))
     if(!dir.exists(folder)){
       warning("directory ", folder, " doesn't exist")
       next

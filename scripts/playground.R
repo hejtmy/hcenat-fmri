@@ -6,6 +6,7 @@ sapply(list.files("functions", full.names = T, recursive = T), source)
 correct_angles <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 participant <- "HCE_E_1"
+img_path <- "images/megamap5.png"
 data <- load_participant(data_dir, participant)
 
 df_quests <- df_quests_info(session$quests_logs)
@@ -14,7 +15,7 @@ df_player <- add_pulses_player(df_quests, session$quests_logs, session$player_lo
 df_quests <- df_quests_info(data[[1]]$quests_logs)
 pointing_results(df_quests, data[[1]]$quests_logs, data[[1]]$player_log, correct_angles)
 
-quest <- get_quest(df_quests, data[[1]]$quests_logs, 12)
+quest <- get_quest(data[[1]]$quests_logs, 12)
 quest_summary(quest, data[[1]]$player_log)
 quests_summary(df_quests, data[[1]]$quests_logs, data[[1]]$player_log)
 
@@ -33,3 +34,5 @@ warnings()
 ## loading final ----
 df_preprocessing <- load_participant_preprocessing_status()
 participant <- load_participants(data_dir, c("HCE_E_7"), df_preprocessing)
+
+plot_quest_path.participant(participant$HCE_E_7[[1]], 2, img_path)
