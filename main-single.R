@@ -26,3 +26,5 @@ quest <- get_quest(participant[[1]]$quests_logs, 13)
 get_correct_angle(quest, participant[[1]]$player_log)
 plot_quest_path.participant(participant[[2]], 3, img_path)
 quest_pointing_accuracy(quest, participant[[1]]$player_log)
+
+## fmri analysis ----
