@@ -6,9 +6,12 @@
 #' @export
 #'
 #' @examples
-add_pulses_participant <- function(data){
-  data$player_log <- add_pulses_player(data$quests_logs, data$player_log)
-  return(data)
+add_pulses_participant <- function(participant){
+  for(i in 1:length(participant)){
+    if(is.null(participant[[i]])) next
+    participant[[i]]$player_log <- add_pulses_player(participant[[i]]$quests_logs, participant[[i]]$player_log)
+  }
+  return(participant)
 }
 
 #' Adds pulses information to the player log
