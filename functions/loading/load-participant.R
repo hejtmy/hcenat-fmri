@@ -29,17 +29,11 @@ load_participants <- function(data_dir, ids=c(), df_preprocessing = NULL, sessio
   return(participants)
 }
 
-
 #' Loads participant data from given directory when given ID and a MRI session
 #'
 #' @param data_dir 
 #' @param id 
 #' @param sessions 
-#'
-#' @return
-#' @export
-#'
-#' @examples
 load_participant <- function(data_dir, id, sessions = c(1,2)){
   response <- list()
   for(session in sessions){

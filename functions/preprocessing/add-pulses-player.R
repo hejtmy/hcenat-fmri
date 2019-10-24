@@ -10,7 +10,7 @@
 add_pulses.participants <- function(participants, clean = TRUE){
   for(participant_name in names(participants)){
     message("Adding pulses to ", participant_name)
-    participants[[participant_name]] <- add_pulses_participant(participants[[participant_name]])
+    participants[[participant_name]] <- add_pulses.participant(participants[[participant_name]])
     if(!clean) next
     for(i in 1:length(participants[[participant_name]])){
       if(is.null(participants[[participant_name]][[i]])) next
