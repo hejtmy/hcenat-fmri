@@ -37,7 +37,7 @@ warnings()
 
 ## loading final ----
 df_preprocessing <- load_participant_preprocessing_status()
-participant <- load_participants(data_dir, c("HCE_K_23"), df_preprocessing)
+participants <- load_participants(data_dir, df_preprocessing = df_preprocessing, sessions = 1)
 
 quest <- get_quest(participant$HCE_K_23[[1]]$quests_logs, 13)
 get_correct_angle(quest, participant$HCE_K_23[[1]]$player_log)
