@@ -49,7 +49,7 @@ sum(diff(participant$HCE_E_14[[1]]$player_log %>% filter(Input == "fMRISynchro")
 which((diff(participant$HCE_E_14[[1]]$player_log %>% filter(Input == "fMRISynchro") %>% .$Time) - 3))
 
 # Soilution
-pokus <- add_pulses_participant(participant$HCE_K_23[[2]])
+participant <- add_pulses_participant(participant)
 
 ## MRI -----
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
