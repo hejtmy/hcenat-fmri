@@ -70,7 +70,7 @@ quest_pointing_accuracy <- function(quest, df_player){
     filter(Time > dt_time$StepActivated) %>%
     filter((Time - dt_time$StepFinished) < ALLOWED_DIFFERENCE) %>%
     select(Time) %>% first
-  if(length(player_point_time) != 1) next
+  if(length(player_point_time) != 1) return(list())
   pointing_moment <- df_player[Time > player_point_time, .SD[1]]
   player_pos <- pointing_moment[, c(Position.x, Position.z)]
   correct_angle <- get_correct_angle(quest, df_player)
