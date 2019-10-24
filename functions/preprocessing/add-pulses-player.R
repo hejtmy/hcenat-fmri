@@ -1,5 +1,30 @@
 #' Title
 #'
+#' @param participants 
+#' @param clean shoud non synchronized participants be removed
+#'
+#' @return
+#' @export
+#'
+#' @examples
+add_pulses_participants <- function(participants, clean = TRUE){
+  for(participant_name in names(participants)){
+    message("Adding pulses to ", participant_name)
+    participants[[participant_name]] <- add_pulses_participant(participants[[participant_name]])
+    if(!clean) next
+    for(i in 1:length(participants[[participant_name]])){
+      if(is.null(participants[[participant_name]][[i]])) next
+      if(!("pulse_id" %in% colnames(participants[[participant_name]][[i]]$player_log))){
+        message(participant_name, "session ", i," was not synchronized, removing from the object")
+        participants[[participant_name]][[i]] <- NULL
+      }
+    }
+  }
+  return(participants)
+}
+
+#' Adds pulses to participant data
+#'
 #' @param data data list as loaded by load_participant
 #'
 #' @return
@@ -23,7 +48,6 @@ add_pulses_participant <- function(participant){
 #'
 #' @examples
 add_pulses_player <- function(quests_logs, df_player){
-  df_player$pulse_id <- NA_integer_
   df_player$quest_id <- NA_integer_
   for(i in 1:length(quests_logs)){
     quest <- get_quest(quests_logs, i)
@@ -38,10 +62,12 @@ add_pulses_player <- function(quests_logs, df_player){
   } 
   ## DO the check
   # 1st and last need to be 1197 (400 pulses by 3s with 1st at 0) s away from each other
-  if(abs((df_player$Time[iSynchro[1]] - df_player$Time[iSynchro[nSynchro]] + 1197)) > 0.05){
-    warning("First and last pulse are not 1200 s away, not synchronizing")
+  first_last_difference <- df_player$Time[iSynchro[nSynchro]] - df_player$Time[iSynchro[1]]
+  if(abs((first_last_difference - 1197)) > 0.05){
+    warning("First and last pulse are not 1197 s away, but ", first_last_difference,", not synchronizing")
     return(df_player)
   }
+  df_player$pulse_id <- NA_integer_
   firstPulse <- df_player$Time[iSynchro[1]]
   for(i in 0:399){
     pulseTime <- c(firstPulse + 3*i, firstPulse + 3*(i+1))
