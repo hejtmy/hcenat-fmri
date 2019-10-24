@@ -23,5 +23,3 @@ load_mri <- function(folder, names_file){
   }
   return(components)
 }
-
-
