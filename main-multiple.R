@@ -11,7 +11,7 @@ df_preprocessing <- load_participant_preprocessing_status()
 
 ## Unity loading -----
 participants <- load_participants(data_dir, df_preprocessing = df_preprocessing, sessions = 1)
-participants <- add_pulses_participants(participants)
+participants <- add_pulses.participants(participants)
 
 ## MRI loading ------
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
@@ -25,3 +25,5 @@ quest <- get_quest(participant[[1]]$quests_logs, 13)
 get_correct_angle(quest, participant[[1]]$player_log)
 plot_quest_path.participant(participant[[2]], 3, img_path)
 quest_pointing_accuracy(quest, participant[[1]]$player_log)
+
+## fmri analysis ----

@@ -1,3 +1,4 @@
+## General getters ------
 get_pulse_time_participant <- function(data, times){
   return(get_pulse_time(data$player_log, times))
 }
@@ -25,3 +26,4 @@ get_pulse_time <- function(df_player, times){
 get_pulse_timewindow <- function(df_player, timewindows){
   
 }
+

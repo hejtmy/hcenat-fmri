@@ -7,7 +7,7 @@
 #' @export
 #'
 #' @examples
-add_pulses_participants <- function(participants, clean = TRUE){
+add_pulses.participants <- function(participants, clean = TRUE){
   for(participant_name in names(participants)){
     message("Adding pulses to ", participant_name)
     participants[[participant_name]] <- add_pulses_participant(participants[[participant_name]])
@@ -26,12 +26,7 @@ add_pulses_participants <- function(participants, clean = TRUE){
 #' Adds pulses to participant data
 #'
 #' @param data data list as loaded by load_participant
-#'
-#' @return
-#' @export
-#'
-#' @examples
-add_pulses_participant <- function(participant){
+add_pulses.participant <- function(participant){
   for(i in 1:length(participant)){
     if(is.null(participant[[i]])) next
     participant[[i]]$player_log <- add_pulses_player(participant[[i]]$quests_logs, participant[[i]]$player_log)
@@ -43,10 +38,7 @@ add_pulses_participant <- function(participant){
 #'
 #' @param quests_logs quest logs loaded by the read_unity_data function
 #' @param df_player player log loaded by the read_unity_data funtcion
-#'
 #' @return df_player with added quest and pulse columns
-#'
-#' @examples
 add_pulses_player <- function(quests_logs, df_player){
   df_player$quest_id <- NA_integer_
   for(i in 1:length(quests_logs)){
