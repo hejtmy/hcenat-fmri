@@ -55,7 +55,7 @@ add_pulses_player <- function(quests_logs, df_player){
   ## DO the check
   # 1st and last need to be 1197 (400 pulses by 3s with 1st at 0) s away from each other
   first_last_difference <- df_player$Time[iSynchro[nSynchro]] - df_player$Time[iSynchro[1]]
-  if(abs((first_last_difference - 1197)) > 0.05){
+  if(abs((first_last_difference - 1197)) > 0.1){
     warning("First and last pulse are not 1197 s away, but ", first_last_difference,", not synchronizing")
     return(df_player)
   }
