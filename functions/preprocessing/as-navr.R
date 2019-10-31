@@ -13,5 +13,6 @@ as.navr <- function(df_player, experiment_log){
   obj <- NavrObject()
   obj$data <- df_player
   obj$area_boundaries <- get_map_size(experiment_log)
+  obj <- add_columns_navr(obj)
   return(obj)
 }

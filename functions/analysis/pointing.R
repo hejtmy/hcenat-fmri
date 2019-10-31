@@ -16,6 +16,14 @@ pointing_results.participants <- function(participants, silent = FALSE){
   return(df_results)
 }
 
+#' Only works for a single session
+#'
+#' @param data 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pointing_results.participant <- function(data){
   result <- pointing_results(data$quests_logs, data$player_log)
   return(result)

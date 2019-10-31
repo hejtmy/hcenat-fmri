@@ -16,6 +16,41 @@ create_pointing_pulses_table <- function(df_pointing, angle_correct = 20){
   return(result)
 }
 
+create_movement_stop_pulses_table <- function(participants, speed_threshold, still_threshold,
+                                              min_duration, pulse_percent = 0.9, silent=FALSE){
+  df_results <- data.frame()
+  for(participant_name in names(participants)){
+    if(!silent) message("calculating for ", participant_name)
+    for(i in 1:length(participants[[participant_name]])){
+      data <- participants[[participant_name]][[i]]
+      if(is.null(data)) next
+      df_onset_stop <- onset_stop_table.participant(data, speed_threshold, still_threshold, min_duration)
+      df_onset_stop <- df_onset_stop %>% filter(!is.na(pulse_id)) %>% filter_full_pulses(pulse_percent)
+      df_onset_stop <- df_onset_stop %>% select(pulse_id, movement_type) %>% unique() %>% mutate(session=i, participant = participant_name)
+      df_results <- rbind(df_results, df_onset_stop)
+    }
+  }
+  return(df_results)
+}
+
+# Helpers ---------
+
+#' Filters out only those pulses which cover pulse percent portion of the event
+#'
+#' @param df 
+#' @param pulse_percent 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+filter_full_pulses <- function(df, pulse_percent) {
+  df <- df %>% group_by(pulse_id) %>% 
+    mutate(percent_of_pulse = diff(range(timestamp))/3) %>% 
+    ungroup() %>% filter(pulse_percent < percent_of_pulse)
+  return(df)
+}
+
 #' Used to spread the pulse_start and pulse_end to a list of pulses
 #'
 #' @param pulses_table 

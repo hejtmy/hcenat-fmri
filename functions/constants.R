@@ -1,0 +1,1 @@
+PULSE_LENGTH <- 3

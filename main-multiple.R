@@ -30,6 +30,8 @@ component_names <- c("filt_cen_11", "filt_cen_16", "filt_cen_23", "filt_cen_37",
                      "filt_dmn_52","filt_hpc_12", "filt_hpc_54", "filt_hpc_56", 
                      "filt_mot_33", "filt_sn_31",  "filt_sn_8", "filt_unk_10", 
                      "filt_vis_4", "filt_vis_43")
+
+### pointing ----
 pointing_pulses <- create_pointing_pulses_table(df_pointing)
 pointing_fmri <- get_fmri(fmri, pointing_pulses)
 
@@ -40,3 +42,15 @@ ezANOVA(pointing_fmri,
         within = correct)
 
 ggplot(pointing_fmri, aes(participant, filt_cen_11, fill=correct)) + geom_boxplot()
+
+pointing_long <- reshape2::melt(pointing_fmri, id.vars=c("pulse_id", "participant", "correct", "session"))
+ggplot(pointing_long, aes(variable, value, fill=correct)) + geom_boxplot()
+
+### movement ----
+movement_pulses <- create_movement_stop_pulses_table(participants, 3,0.2,3)
+movement_fmri <- get_fmri(fmri, movement_pulses)
+head(movement_fmri)
+ggplot(movement_fmri, aes(movement_type, filt_cen_11, fill=movement_type)) + geom_boxplot()
+
+movement_long <- reshape2::melt(movement_fmri, id.vars=c("pulse_id", "participant", "movement_type", "session"))
+ggplot(movement_long, aes(variable, value, fill=movement_type)) + geom_boxplot()
