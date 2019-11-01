@@ -1,3 +1,7 @@
+# reports
+*.html
+#
+
 .Rproj.user
 .Rhistory
 .RData

@@ -38,17 +38,24 @@ component_names <- c("filt_cen_11", "filt_cen_16", "filt_cen_23", "filt_cen_37",
 movement_pulses <- create_movement_stop_pulses_table(participants, 3,0.2,3)
 movement_fmri <- get_fmri(fmri, movement_pulses)
 ```
+### All components togehter
+```{r}
+movement_long <- reshape2::melt(movement_fmri, id.vars=c("pulse_id", "participant", "movement_type", "session"))
+ggplot(movement_long, aes(variable, value, fill=movement_type)) + geom_boxplot()
+```
 
-```{r, echo=F}
+
+### Per component analysis 
+```{r, echo=F, warning=FALSE}
 for(component_name in component_names){
   eval(parse(text=
-     paste0("ez_res <- ezANOVA(pointing_fmri,
+     paste0("ez_res <- ezANOVA(movement_fmri,
         dv =", component_name,",
         wid = participant,
         within = movement_type,
         return_aov=TRUE)")))
   print(summary(ez_res$aov))
-  print(ggplot(pointing_fmri, aes(participant, .data[[component_name]], fill=movement_type)) + geom_boxplot())
-  print(ggplot(pointing_fmri, aes(correct, .data[[component_name]])) + geom_boxplot())
+  print(ggplot(movement_fmri, aes(participant, .data[[component_name]], fill=movement_type)) + geom_boxplot())
+  print(ggplot(movement_fmri, aes(movement_type, .data[[component_name]])) + geom_boxplot())
 }
 ```

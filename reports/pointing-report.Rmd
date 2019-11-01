@@ -42,7 +42,7 @@ pointing_pulses <- create_pointing_pulses_table(df_pointing)
 pointing_fmri <- get_fmri(fmri, pointing_pulses)
 ```
 
-```{r, echo=F}
+```{r, echo=F, warning=FALSE}
 for(component_name in component_names){
   eval(parse(text=
      paste0("ez_res <- ezANOVA(pointing_fmri,
