@@ -46,7 +46,7 @@ create_movement_stop_pulses_table <- function(participants, speed_threshold, sti
 #' @examples
 filter_full_pulses <- function(df, pulse_percent) {
   df <- df %>% group_by(pulse_id) %>% 
-    mutate(percent_of_pulse = diff(range(timestamp))/3) %>% 
+    mutate(percent_of_pulse = diff(range(timestamp))/PULSE_LENGTH) %>% #pulse length is defined in constants 
     ungroup() %>% filter(pulse_percent < percent_of_pulse)
   return(df)
 }

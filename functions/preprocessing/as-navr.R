@@ -14,5 +14,6 @@ as.navr <- function(df_player, experiment_log){
   obj$data <- df_player
   obj$area_boundaries <- get_map_size(experiment_log)
   obj <- add_columns_navr(obj)
+  obj$data$speed[obj$data$Input == "Pause"] <- NA_real_ #should fix the issue with onset and stop search
   return(obj)
 }
