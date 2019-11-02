@@ -46,8 +46,9 @@ ggplot(movement_long, aes(variable, value, fill=movement_type)) + geom_boxplot()
 
 
 ### Per component analysis 
-```{r, echo=F, warning=FALSE}
+```{r, echo=F, warning=FALSE, results='asis'}
 for(component_name in component_names){
+  cat("<h3>", component_name, "</h3>")
   eval(parse(text=
      paste0("ez_res <- ezANOVA(movement_fmri,
         dv =", component_name,",
