@@ -8,11 +8,18 @@
 #' @param df_pointing table created by pointint_results.participants
 #'
 #' @return data.frame
-create_pointing_pulses_table <- function(df_pointing, angle_correct = 20){
+create_pointing_pulses_table <- function(df_pointing, angle_correct = 20, pulse_percent = 0.9){
   df_pointing$angle_diff <- abs(navr::angle_to_180(df_pointing$correct_angle - df_pointing$chosen_angle))
   df_pointing$correct <- df_pointing$angle_diff < angle_correct
-  result <- df_pointing %>% filter(!is.na(pulse_start) & !is.na(pulse_end)) %>% select(participant, pulse_start, pulse_end, session, correct)
-  result <- spread_table(result)
+  result <- df_pointing %>% filter(!is.na(pulse_start) & !is.na(pulse_end)) %>%
+    mutate(pulse_start_percent = 1-((point_start - pulse_start_starttime)/PULSE_LENGTH),
+           pulse_end_percent = (point_end - pulse_end_starttime)/PULSE_LENGTH) %>%
+    mutate(pulse_start = ifelse(pulse_start_percent < pulse_percent, pulse_start + 1, pulse_start), #starts pointing pulses later if 
+           pulse_end = ifelse(pulse_end_percent < pulse_percent, pulse_end - 1, pulse_end)) %>% #ends pointing pulses earlier if not full 
+    filter(pulse_end - pulse_start >= 0) #it is possible that because of previous step we might get -1 
+  result <- result %>% 
+    select(participant, pulse_start, pulse_end, session, correct) %>%
+    spread_table()
   return(result)
 }
 

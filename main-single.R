@@ -10,9 +10,9 @@ participant_code <- "HCE_E_10"
 df_preprocessing <- load_participant_preprocessing_status()
 
 ## Unity loading -----
-participant <- load_participants(data_dir, participant_code, df_preprocessing)
-participant <- participant[[participant_code]]
-participant <- add_pulses.participant(participant)
+participants <- load_participants(data_dir, participant_code, df_preprocessing)
+participants <- add_pulses.participants(participants)
+participant <- participants[[participant_code]]
 
 ## MRI loading ------
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")

@@ -49,8 +49,10 @@ pointing_results <- function(quests_logs, df_player){
     }
     quest_pointing <- quest_pointing_accuracy(quest, df_player) #possble to get NAS in the data frame
     # Adding the fnru pulses
-    quest_pointing$pulse_start <- get_pulse_time(df_player, quest_pointing$point_start)
-    quest_pointing$pulse_end <- get_pulse_time(df_player, quest_pointing$point_end)
+    quest_pointing$pulse_start <- get_pulse_at_time(df_player, quest_pointing$point_start)
+    quest_pointing$pulse_start_starttime <- get_pulse_timewindow(df_player, quest_pointing$pulse_start)$start
+    quest_pointing$pulse_end <- get_pulse_at_time(df_player, quest_pointing$point_end)
+    quest_pointing$pulse_end_starttime <- get_pulse_timewindow(df_player, quest_pointing$pulse_end)$start
     
     quest_pointing <- as.data.frame(quest_pointing) %>% mutate(quest_order_session = quest_order_session)
     df_results <- rbindlist(list(df_results, quest_pointing), fill = TRUE)
