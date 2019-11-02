@@ -24,13 +24,26 @@ create_movement_stop_pulses_table <- function(participants, speed_threshold, sti
     for(i in 1:length(participants[[participant_name]])){
       data <- participants[[participant_name]][[i]]
       if(is.null(data)) next
-      df_onset_stop <- onset_stop_table.participant(data, speed_threshold, still_threshold, min_duration)
-      df_onset_stop <- df_onset_stop %>% filter(!is.na(pulse_id)) %>% filter_full_pulses(pulse_percent)
-      df_onset_stop <- df_onset_stop %>% select(pulse_id, movement_type) %>% unique() %>% mutate(session=i, participant = participant_name)
+      df_onset_stop <- create_movement_stop_pulses_table.session(data, speed_threshold, still_threshold, pulse_percent)
+      df_onset_stop <- df_onset_stop %>%  mutate(session=i, participant = participant_name)
       df_results <- rbind(df_results, df_onset_stop)
     }
   }
   return(df_results)
+}
+
+create_movement_pulses_table.session <- function(data, speed_threshold, still_threshold, min_duration, pulse_percent) {
+  df_onset_stop <- onset_stop_table.participant(data, speed_threshold, still_threshold, min_duration)
+  df_onset_stop <- df_onset_stop %>% filter(!is.na(pulse_id)) %>%
+    filter_full_pulses(pulse_percent) %>%  group_by(pulse_id) %>%
+    mutate(rotation_x_sum = sum(abs(rotation_x_diff)),
+           rotation_y_sum = sum(abs(rotation_y_diff)),
+           rotation_sum = rotation_x_sum + rotation_y_sum) %>%
+    ungroup()
+  df_onset_stop <- df_onset_stop %>%
+    select(pulse_id, movement_type, rotation_x_sum, rotation_y_sum, rotation_sum) %>%
+    unique()
+  return(df_onset_stop) 
 }
 
 # Helpers ---------

@@ -1,4 +1,4 @@
-onset_stop_table.participant <- function(participant_session, speed_threshold, still_threshold, min_duration){
+onset_stop_table.session <- function(participant_session, speed_threshold, still_threshold, min_duration){
   nav <- as.navr(participant_session$player_log, participant_session$experiment_log)
   df_onsets <- onset_table.navr(nav, speed_threshold, min_duration)
   df_stops <- stop_table.navr(nav, still_threshold, min_duration)

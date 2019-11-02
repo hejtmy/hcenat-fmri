@@ -41,11 +41,11 @@ participants <- load_participants(data_dir, df_preprocessing = df_preprocessing,
 
 quest <- get_quest(participant$HCE_K_23[[1]]$quests_logs, 13)
 get_correct_angle(quest, participant$HCE_K_23[[1]]$player_log)
-plot_quest_path.participant(participant$HCE_K_23[[2]], 3, img_path)
+plot_quest_path.session(participant$HCE_K_23[[2]], 3, img_path)
 quest_pointing_accuracy(quest, participant$HCE_K_23[[1]]$player_log)
 
 ## Onsets
-df <- onset_stop_table.participant(participant[[1]], 3, 0.2, 5)
+df <- onset_stop_table.session(participant[[1]], 3, 0.2, 5)
 df %>% filter(movement_type == "moving" & !is.na(pulse_id)) %>% ggplot(aes(position_x, position_y, color=factor(pulse_id))) + geom_path() + theme(legend.position = "none")
 df %>% filter(movement_type == "still" & !is.na(pulse_id)) %>% unique() %>% ggplot(aes(position_x, position_y, color=factor(pulse_id))) + 
   geom_jitter(width = 20, height = 20) + theme(legend.position = "none")
@@ -62,3 +62,6 @@ participant <- add_pulses_participant(participant)
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
 names_file <- file.path(data_dir, "../MRI-data-tomecek/subs_20190830_1422.txt")
 components <- load_mri(folder, names_file)
+
+
+create_movement_pulses_table.session(participant[[1]], 3,0.2,5,0.9) 

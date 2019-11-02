@@ -17,9 +17,9 @@ quests_summary <- function(df_quests, quests_logs, df_player){
   return(df_result)
 }
 #' shorthand for the loaded data
-quests_summary.participant <- function(data){
+quests_summary.session <- function(data){
   df_quests <- df_quests_info(data$quests_logs)
-  pointing <- pointing_results.participant(data)
+  pointing <- pointing_results.session(data)
   result <- quests_summary(df_quests, data$quests_logs, data$player_log)
   if(!is.null(pointing)) result <- merge(pointing, result, by=c("name", "quest_order_session"), all=TRUE)
   return(result)

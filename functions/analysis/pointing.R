@@ -7,7 +7,7 @@ pointing_results.participants <- function(participants, silent = FALSE){
     for(i in 1:length(participants[[participant_name]])){
       data <- participants[[participant_name]][[i]]
       if(is.null(data)) next
-      df_session_pointing <- pointing_results.participant(data)
+      df_session_pointing <- pointing_results.session(data)
       df_session_pointing$session <- i
       df_session_pointing$participant <- participant_name
       df_results <- rbind(df_results, df_session_pointing)
@@ -24,7 +24,7 @@ pointing_results.participants <- function(participants, silent = FALSE){
 #' @export
 #'
 #' @examples
-pointing_results.participant <- function(data){
+pointing_results.session <- function(data){
   result <- pointing_results(data$quests_logs, data$player_log)
   return(result)
 }
