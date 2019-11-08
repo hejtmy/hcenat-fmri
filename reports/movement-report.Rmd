@@ -4,7 +4,7 @@ author: "Lukáš 'hejtmy' Hejtmánek"
 date: "24/10/2019"
 output: html_document
 ---
-```{r, setup, echo=F, warning=F, message=FALSE}
+```{r, setup, echo=F, warning=F, message=FALSE, results='hide'}
 library(data.table)
 library(navr)
 library(dplyr)
@@ -40,7 +40,7 @@ movement_fmri <- get_fmri(fmri, movement_pulses)
 ```
 ### All components togehter
 ```{r}
-movement_long <- reshape2::melt(movement_fmri, id.vars=c("pulse_id", "participant", "movement_type", "session"))
+movement_long <- reshape2::melt(movement_fmri %>% select(-rotation_sum, -rotation_x_sum, -rotation_y_sum), id.vars=c("pulse_id", "participant", "movement_type", "session"))
 ggplot(movement_long, aes(variable, value, fill=movement_type)) + geom_boxplot()
 ```
 

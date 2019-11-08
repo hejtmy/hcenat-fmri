@@ -4,7 +4,7 @@ author: "Lukáš 'hejtmy' Hejtmánek"
 date: "24/10/2019"
 output: html_document
 ---
-```{r, setup, echo=F, warning=F, message=FALSE}
+```{r, setup, echo=F, warning=F, message=FALSE, results='hide'}
 library(data.table)
 library(navr)
 library(dplyr)
@@ -43,10 +43,16 @@ pointing_fmri <- get_fmri(fmri, pointing_pulses)
 ```
 
 ```{r, echo=F, warning=FALSE, results='asis'}
+# need to remove participants who don't have enough correct/incorrect poiontings . those with only correct or incorrect needs to be removed
+good_proportions_participant <- pointing_fmri %>% group_by(participant) %>% 
+  summarize(percent_correct = sum(correct)/n()) %>% 
+  filter(percent_correct > 0.15 & percent_correct < 0.85) %>%
+  pull(participant)
+pointing_fmri_ez_ready <- pointing_fmri %>% filter(participant %in% good_proportions_participant)
 for(component_name in component_names){
   cat("<h3>", component_name, "</h3>")
   eval(parse(text=
-     paste0("ez_res <- ezANOVA(pointing_fmri,
+     paste0("ez_res <- ezANOVA(pointing_fmri_ez_ready,
         dv =", component_name,",
         wid = participant,
         within = correct,
