@@ -4,26 +4,27 @@ pointing_results.participants <- function(participants, silent = FALSE){
   df_results <- data.frame()
   for(participant_name in names(participants)){
     if(!silent) message("calculating for ", participant_name)
-    for(i in 1:length(participants[[participant_name]])){
-      data <- participants[[participant_name]][[i]]
-      if(is.null(data)) next
-      df_session_pointing <- pointing_results.session(data)
-      df_session_pointing$session <- i
-      df_session_pointing$participant <- participant_name
-      df_results <- rbind(df_results, df_session_pointing)
-    }
+    participant_results <- pointing_results.participant(participants[[participant_name]])
+    participant_results$participant <- participant_name
+    df_results <- rbind(df_results, participant_results)
+  }
+  return(df_results)
+}
+
+#' Works for data for all sessions for a single participant
+pointing_results.participant <- function(data){
+  df_results <- data.frame()
+  for(i in 1:length(data)){
+    session_data <- data[[i]]
+    if(is.null(session_data)) next
+    df_session_pointing <- pointing_results.session(session_data)
+    df_session_pointing$session <- i
+    df_results <- rbind(df_results, df_session_pointing)
   }
   return(df_results)
 }
 
 #' Only works for a single session
-#'
-#' @param data 
-#'
-#' @return
-#' @export
-#'
-#' @examples
 pointing_results.session <- function(data){
   result <- pointing_results(data$quests_logs, data$player_log)
   return(result)
@@ -94,9 +95,7 @@ quest_pointing_accuracy <- function(quest, df_player){
 }
 
 get_correct_angle <- function(quest, df_player){
-  if(!exists("CORRECT_ANGLES")){
-    stop("You need to load the CORRECT_ANGLES first from the data folder") 
-  }
+  if(!exists("CORRECT_ANGLES")) stop("You need to load the CORRECT_ANGLES first from the data folder") 
   quest_start_finish <- get_quest_start_finish_positions(df_player, quest, include_teleport = FALSE)
   if(quest$name %in% CORRECT_ANGLES$name){
     correct_angle <- CORRECT_ANGLES$target_angle[CORRECT_ANGLES$name == quest$name]

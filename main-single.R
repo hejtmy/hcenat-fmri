@@ -27,8 +27,14 @@ get_correct_angle(quest, participant[[1]]$player_log)
 plot_quest_path.session(participant[[2]], 3, img_path)
 quest_pointing_accuracy(quest, participant[[1]]$player_log)
 pointing_results.session(participant[[1]])
-
+pointing_results.participant(participant)
+pointing_results.participants(participants)
 ## fmri analysis ----
-movement_pulses <- create_movement_pulses_table.session(participant[[1]], 3, 0.2, 5, 0.9) %>% mutate(session=1, participant=participant_code)
+movement_pulses <- create_movement_pulses_table.session(participant[[1]], 3, 0.2, 5, 0.9) %>% 
+  mutate(session=1, participant=participant_code)
 movement_fmri <- get_fmri(fmri, movement_pulses)
-movement_fmri %>% filter(movement_type=="still") %>% lm(rotation_sum ~ filt_cen_11, data = .) %>% summary()
+movement_fmri %>% 
+  filter(movement_type=="still") %>% 
+  lm(rotation_sum ~ filt_cen_11, data = .) %>% summary()
+
+## Pulses output

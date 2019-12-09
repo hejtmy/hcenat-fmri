@@ -40,25 +40,31 @@ add_pulses.participant <- function(participant){
 #' @param df_player player log loaded by the read_unity_data funtcion
 #' @return df_player with added quest and pulse columns
 add_pulses_player <- function(quests_logs, df_player){
+  ## Adding quest ids to the player table
   df_player$quest_id <- NA_integer_
   for(i in 1:length(quests_logs)){
     quest <- get_quest(quests_logs, i)
     quest_times <- get_quest_timewindow(quest, include_teleport = FALSE) #can be null
     df_player[Time > quest_times$start & Time < quest_times$finish, quest_id := i]
   }
+  
+  ## Adding pulse information to the table
   iSynchro <- which(df_player$Input == "fMRISynchro")
   nSynchro <- length(iSynchro)
+  
+  ### Validations
   if(length(nSynchro) < 1){
     warning('there are no Synchropulses in the player log')
     return(df_player)
   } 
-  ## DO the check
   # 1st and last need to be 1197 (400 pulses by 3s with 1st at 0) s away from each other
   first_last_difference <- df_player$Time[iSynchro[nSynchro]] - df_player$Time[iSynchro[1]]
   if(abs((first_last_difference - 1197)) > 0.1){
     warning("First and last pulse are not 1197 s away, but ", first_last_difference,", not synchronizing")
     return(df_player)
   }
+  
+  ### Adds the pulse column
   df_player$pulse_id <- NA_integer_
   firstPulse <- df_player$Time[iSynchro[1]]
   for(i in 0:399){
