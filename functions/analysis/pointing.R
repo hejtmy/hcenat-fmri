@@ -5,8 +5,10 @@ pointing_results.participants <- function(participants, silent = FALSE){
   for(participant_name in names(participants)){
     if(!silent) message("calculating for ", participant_name)
     participant_results <- pointing_results.participant(participants[[participant_name]])
-    participant_results$participant <- participant_name
-    df_results <- rbind(df_results, participant_results)
+    if(nrow(participant_results) > 0){
+      participant_results$participant <- participant_name
+      df_results <- rbind(df_results, participant_results)
+    } 
   }
   return(df_results)
 }
@@ -19,7 +21,7 @@ pointing_results.participant <- function(data){
     if(is.null(session_data)) next
     df_session_pointing <- pointing_results.session(session_data)
     df_session_pointing$session <- i
-    df_results <- rbind(df_results, df_session_pointing)
+    if(nrow(df_session_pointing) > 0) df_results <- rbind(df_results, df_session_pointing)
   }
   return(df_results)
 }
