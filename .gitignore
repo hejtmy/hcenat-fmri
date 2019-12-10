@@ -1,5 +1,7 @@
 # reports
 *.html
+*.csv
+
 #
 
 .Rproj.user

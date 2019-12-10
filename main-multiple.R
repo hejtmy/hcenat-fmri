@@ -47,7 +47,7 @@ pointing_long <- reshape2::melt(pointing_fmri, id.vars=c("pulse_id", "participan
 ggplot(pointing_long, aes(variable, value, fill=correct)) + geom_boxplot()
 
 ### movement ----
-movement_pulses <- create_movement_stop_pulses_table(participants, 3, 0.2, 3)
+movement_pulses <- create_movement_stop_pulses_table(participants, 10, 1, 3)
 movement_fmri <- get_fmri(fmri, movement_pulses)
 head(movement_fmri)
 ggplot(movement_fmri, aes(movement_type, filt_cen_11, fill=movement_type)) + geom_boxplot()

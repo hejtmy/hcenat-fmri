@@ -20,8 +20,10 @@ pointing_results.participant <- function(data){
     session_data <- data[[i]]
     if(is.null(session_data)) next
     df_session_pointing <- pointing_results.session(session_data)
-    df_session_pointing$session <- i
-    if(nrow(df_session_pointing) > 0) df_results <- rbind(df_results, df_session_pointing)
+    if(nrow(df_session_pointing) > 0){
+      df_results <- rbind(df_results, df_session_pointing)
+      df_session_pointing$session <- i
+    }
   }
   return(df_results)
 }

@@ -32,7 +32,7 @@ create_pointing_pulses_table.participants <- function(data, angle_correct = 20){
 
 ## Movement onset and stop tables ----
 
-create_movement_stop_pulses_table.participants <- function(participants, speed_threshold, still_threshold,
+create_movement_pulses_table.participants <- function(participants, speed_threshold, still_threshold,
                                               min_duration, pulse_percent = 0.9, silent=FALSE){
   df_results <- data.frame()
   for(participant_name in names(participants)){
@@ -48,7 +48,7 @@ create_movement_stop_pulses_table.participants <- function(participants, speed_t
   return(df_results)
 }
 
-create_movement_stop_pulses_table.session <- function(data, speed_threshold, still_threshold, min_duration, pulse_percent){
+create_movement_pulses_table.session <- function(data, speed_threshold, still_threshold, min_duration, pulse_percent){
   df_onset_stop <- onset_stop_table.session(data, speed_threshold, still_threshold, min_duration)
   df_onset_stop <- df_onset_stop %>% filter(!is.na(pulse_id)) %>%
     filter_full_pulses(pulse_percent) %>%  group_by(pulse_id) %>%
@@ -61,9 +61,6 @@ create_movement_stop_pulses_table.session <- function(data, speed_threshold, sti
     unique()
   return(df_onset_stop) 
 }
-
-
-# Official output function
 
 # Helpers ---------
 
