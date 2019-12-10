@@ -1,6 +1,6 @@
-#' Title
+#' Adds pulses to all participants in the object
 #'
-#' @param participants 
+#' @param participants participants object created by load participants function 
 #' @param clean shoud non synchronized participants be removed
 #'
 #' @return

@@ -33,3 +33,7 @@ get_pulses_in_timewindow <- function(df_player, timewindows){
   
 }
 
+get_first_pulse_time <- function(df_player){
+  first_pulse_time <- df_player %>% filter(Input == "fMRISynchro") %>% pull(Time) %>% .[1]
+  return(first_pulse_time)
+}

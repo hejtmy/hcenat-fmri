@@ -1,7 +1,9 @@
-#' Title
+#' Loads multiple participant from a data folder.
 #'
-#' @param data_dir 
+#' @param data_dir path tot he desired folder
 #' @param ids 
+#' @param df_preprocessing preprocessing table loaded from google sheets with mri codes and preprocessing status
+#' @param sessions 
 #'
 #' @return
 #' @export
