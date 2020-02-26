@@ -2,8 +2,10 @@
 *.html
 *.csv
 
-#
+# outputs
+exports/
 
+#
 .Rproj.user
 .Rhistory
 .RData

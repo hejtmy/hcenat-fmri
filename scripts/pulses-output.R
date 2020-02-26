@@ -3,17 +3,13 @@ library(navr)
 library(dplyr)
 library(ez)
 sapply(list.files("functions", full.names = T, recursive = T), source)
-CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+# source("scripts/preprocess-participants.R")
 
-data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
-img_path <- "images/megamap5.png"
 
-df_preprocessing <- load_participant_preprocessing_status()
+load("participants-prepared.RData")
 
-participants <- load_participants(data_dir, df_preprocessing = df_preprocessing, session = 1)
-participants <- add_pulses.participants(participants)
-
-## Pointing
+## Pointing ------
 df_pointing <- pointing_results.participants(participants)
 df_pointing <- add_fmri_code(df_pointing, "participant", df_preprocessing)
 
@@ -26,7 +22,7 @@ out_pointing <- df_pointing %>%
 
 write.table(out_pointing, "pointing.csv", row.names = FALSE, sep=",", quote = FALSE)
 
-## Onsets
+## Onsets -----
 df_onset_stop <- onset_stop_table.participants(participants, 10, 1, 3)
 df_onset_stop <- add_fmri_code(df_onset_stop, "participant", df_preprocessing)
 

@@ -2,17 +2,11 @@ library(data.table)
 library(navr)
 library(dplyr)
 library(ez)
+
 sapply(list.files("functions", full.names = T, recursive = T), source)
-CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
-
-data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
-img_path <- "images/megamap5.png"
-
-df_preprocessing <- load_participant_preprocessing_status()
-
-## Unity loading -----
-participants <- load_participants(data_dir, df_preprocessing = df_preprocessing, sessions = 1)
-participants <- add_pulses.participants(participants)
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+source("scripts/preprocess-participants.R")
+load("participants-prepared.RData")
 
 ## MRI loading ------
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")

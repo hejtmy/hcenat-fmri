@@ -1,3 +1,14 @@
+#' Title
+#'
+#' @param participants 
+#' @param speed_threshold 
+#' @param still_threshold 
+#' @param min_duration 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 onset_stop_table.participants <- function(participants, speed_threshold, still_threshold, min_duration){
   out <- data.frame()
   for(participant_name in names(participants)){
@@ -11,6 +22,17 @@ onset_stop_table.participants <- function(participants, speed_threshold, still_t
   return(out)
 }
 
+#' Title
+#'
+#' @param participant_data 
+#' @param speed_threshold 
+#' @param still_threshold 
+#' @param min_duration 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 onset_stop_table.participant <- function(participant_data, speed_threshold, still_threshold, min_duration){
   out <- data.frame()
   for(i in 1:length(participant_data)){
@@ -25,6 +47,17 @@ onset_stop_table.participant <- function(participant_data, speed_threshold, stil
   return(out)
 }
 
+#' Title
+#'
+#' @param participant_session 
+#' @param speed_threshold 
+#' @param still_threshold 
+#' @param min_duration 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 onset_stop_table.session <- function(participant_session, speed_threshold, still_threshold, min_duration){
   nav <- as.navr(participant_session$player_log, participant_session$experiment_log)
   nav <- remove_unreal_speeds(nav, 30, "value")
