@@ -6,7 +6,6 @@ sapply(list.files("functions", full.names = T, recursive = T), source)
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 # source("scripts/preprocess-participants.R")
 
-
 load("participants-prepared.RData")
 
 ## Pointing ------
@@ -20,7 +19,7 @@ out_pointing <- df_pointing %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   select(-c(correct_angle, chosen_angle, time_end))
 
-write.table(out_pointing, "pointing.csv", row.names = FALSE, sep=",", quote = FALSE)
+write.table(out_pointing, file.path("exports", "pointing.csv"), row.names = FALSE, sep=",", quote = FALSE)
 
 ## Onsets -----
 df_onset_stop <- onset_stop_table.participants(participants, 10, 1, 3)
@@ -28,6 +27,6 @@ df_onset_stop <- add_fmri_code(df_onset_stop, "participant", df_preprocessing)
 
 out_onset_stop <- df_onset_stop %>%
   mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
-  select(fmri_code, movement_type, time, duration)
+  select(fmri_code, time, duration, movement_type)
 
-write.table(out_onset_stop, "walking.csv", row.names = FALSE, sep=",", quote = FALSE)
+write.table(out_onset_stop, file.path("exports","walking.csv"), row.names = FALSE, sep=",", quote = FALSE)
