@@ -23,6 +23,7 @@ for i = 1:size(subs,1)
     subMoving = strcmp(walking{2}(walkingData), 'moving'); % 'moving' indices
     subMovingTime = walkingTime(subMoving); % extract 'moving' onsets
     subMovingTime = round(subMovingTime./tr); % convert 'moving' onsents in seconds to volumes
+    
     nonNegMovingTime = find(subMovingTime > 0); % find negative onsets
     subMovingTime = subMovingTime(nonNegMovingTime); % discard negative onsets
     subMovingDur = walkingDur(subMoving); % extract 'moving' durations
@@ -38,7 +39,7 @@ for i = 1:size(subs,1)
     end
     movingTsTEMP = sum(movingTsTEMP,2); % merge blocks
     movingTs(:,i) = movingTsTEMP(1:size(blankTs,1));
-    movingTsHrfTEMP = conv(movingTs(:,i),hrf); % convolution with hrf
+    movingTsHrfTEMP = conv(movingTs(:,i), hrf); % convolution with hrf
     movingTsHrf(:,i) = movingTsHrfTEMP(1:length(movingTs)); % cut off the end (resulting time series are longer after convolution)
     writematrix(movingTsHrf(:,i),fullfile(subs{i},[subName,'_moving.txt']))
     
@@ -91,5 +92,4 @@ for i = 1:size(subs,1)
     pointingTsHrfTEMP = conv(pointingTs(:,i),hrf); % convolution with hrf
     pointingTsHrf(:,i) = pointingTsHrfTEMP(1:length(pointingTs)); % cut off the end (resulting time series are longer after convolution)
     writematrix(pointingTsHrf(:,i),fullfile(subs{i},[subName,'_pointing.txt']))
-    
 end

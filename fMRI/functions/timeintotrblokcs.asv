@@ -1,0 +1,4 @@
+function [outputArg1,outputArg2] = timeintotrblokcs(inputArg1,inputArg2)
+%TIMEINTOTRBLOKCS This function takes times and TR time and converts events
+end
+
