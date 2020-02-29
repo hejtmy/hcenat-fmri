@@ -4,6 +4,7 @@ addpath('/hydra-db/hydra_io/vypocty/tomecek/hce/info/filters')
 
 load('/hydradb/hydra_io/vypocty/tomecek/hce/results/gift_20181126_0924/hce_ica_parameter_info.mat') % GIFT parameter file
 load('/hydradb/hydra_io/vypocty/tomecek/hce/results/gift_20181126_0924/comps/comps_20181204_121411.mat') % IC time series
+
 tr = 3; % TR = 3 sec
 numSigCorr = 5; % Number of significant IC (just for visualization)
 
@@ -27,7 +28,7 @@ for i = 1:sesInfo.numOfSub
     corrIcMoveS(:,i) = corr(subMove(:,i),comps(:,:,i),'Type','Spearman');
     corrIcStillS(:,i) = corr(subStill(:,i),comps(:,:,i),'Type','Spearman');
     corrIcPointS(:,i) = corr(subPoint(:,i),comps(:,:,i),'Type','Spearman');
-    
+
 end
 
 %% PLOTS

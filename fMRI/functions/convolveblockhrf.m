@@ -5,9 +5,9 @@ function hrfconv = convolveblockhrf(trblocks, tr)
 %   the given block or not
 %   tr: length fo the block
 %   
-    hrf = spm_hrf(tr); % (SPM Toolbox required) create hrf function 
-    hrfconv = conv(trblocks, hrf);
-    % cut off the end (resulting time series are longer after convolution)
-    hrfconv = hrfconv(1:length(trblocks));
+hrf = spm_hrf(tr); % (SPM Toolbox required) create hrf function 
+hrfconv = conv(trblocks, hrf);
+% cut off the end (resulting time series are longer after convolution)
+hrfconv = hrfconv(1:length(trblocks));
 end
 

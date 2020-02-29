@@ -42,7 +42,7 @@ for i = 1:size(subs,1)
     movingTsHrfTEMP = conv(movingTs(:,i), hrf); % convolution with hrf
     movingTsHrf(:,i) = movingTsHrfTEMP(1:length(movingTs)); % cut off the end (resulting time series are longer after convolution)
     writematrix(movingTsHrf(:,i),fullfile(subs{i},[subName,'_moving.txt']))
-    %%%% ---- done
+    
     % STILL
     subStill = strcmp(walking{2}(walkingData), 'still'); % 'still' indices
     subStillTime = walkingTime(subStill); % extract 'still' onsets
