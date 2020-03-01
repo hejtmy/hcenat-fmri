@@ -17,13 +17,18 @@ iHappenedDuringSession = all(eventTimes < (tr * (sessionLength-1)), 2);
 eventTimes = eventTimes(iHappenedDuringSession, :);
 
 trblocks = zeros(sessionLength, 1);
-startPulses = round(eventTimes(:,1)/tr - mod(eventTimes(:,1),tr)/tr);
-startProportions = 1 - mod(eventTimes(:,1),tr)/tr;
-endPulses = round(eventTimes(:,2)/tr - mod(eventTimes(:,2),tr)/tr);
-endProportions = mod(eventTimes(:,2),tr)/tr;
 
+% The round is not necessary, but it converts the numeric pulse 1.000 to 1
+startProportions = 1 - mod(eventTimes(:,1),tr)/tr;
+startPulses = round(eventTimes(:,1)/tr - (1 - startProportions));
+endProportions = mod(eventTimes(:,2),tr)/tr;
+endPulses = round(eventTimes(:,2)/tr - endProportions);
+
+% Pulses are calculated from 0, but matlab indexes from 1
+startPulses = startPulses + 1;
+endPulses = endPulses + 1;
 for i = 1:numel(startPulses)
-    trblocks(startPulses(i):(endPulses(i)-1)) = 1;
+    trblocks(startPulses(i) + 1:(endPulses(i)-1)) = 1;
 end
 
 trblocks(startPulses) = startProportions;

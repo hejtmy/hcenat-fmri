@@ -22,9 +22,16 @@ for i = 1:size(subs,1)
     % MOVING
     subMoving = strcmp(walking{2}(walkingData), 'moving'); % 'moving' indices
     subMovingTime = walkingTime(subMoving); % extract 'moving' onsets
+     % QUESTION - can't this result in pulse 0?
+     % QUESTION - how this handles situation where some events start say at
+     % the time of 3.1 and others at 5.9? isn't hat the same result,
+     % although in some cases it "saturates" the entire pulse and in other
+     % cases it barely impacts it? what about situation where the event is
+     % from time 4.54-5.99. Does that get "discarded" completely?
     subMovingTime = round(subMovingTime./tr); % convert 'moving' onsents in seconds to volumes
-    
-    nonNegMovingTime = find(subMovingTime > 0); % find negative onsets
+    % QUESTION - - this basically removes any events happening at
+    % 0.5! - shouldn't here be >=0
+    nonNegMovingTime = find(subMovingTime > 0); % find negative onsets 
     subMovingTime = subMovingTime(nonNegMovingTime); % discard negative onsets
     subMovingDur = walkingDur(subMoving); % extract 'moving' durations
     subMovingDur = round(subMovingDur./tr); % convert 'moving' durations in seconds to volumes
@@ -35,6 +42,15 @@ for i = 1:size(subs,1)
     % create 'moving' blocks
 	movingTsTEMP = blankTs;
     for j = 1:size(subMovingTime,1)
+        % QUESTION - I am a bit confused about the subMoving time being
+        % position at the round, because matlab indexes at 1 - e.g if you
+        % an event happens at time 1.56 - it gets rounded (1.56/3) to 1,
+        % but it should be pulse 2!, not pulse 1. Pulse 1, starts at time 0
+        % and time 3.1 should therefore be market as event happening at a
+        % position 2, not a position 1. Shouldn't the subMovingTime be
+        % either round(subMovingTime./tr) + 1; or this be 
+        % subMovingTime(j)+1:subMovingTime(j)+subMovingDur(j) = ones? this
+        % feels like everythig in shifted by one, right?
         movingTsTEMP(subMovingTime(j):subMovingTime(j)+subMovingDur(j)-1,1) = ones(subMovingDur(j),1);
     end
     movingTsTEMP = sum(movingTsTEMP,2); % merge blocks

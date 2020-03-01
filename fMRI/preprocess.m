@@ -15,35 +15,24 @@ walkingData = filtervalidevents(walkingData);
 
 pointingData = readeventfile(pthPointingData, '%s %f %f %f');
 pointingData = filtervalidevents(pointingData);
+
 %% Setting FMRI base
 TR = 3; % TR = 3 sec
 SESSION_LENGTH = 400;
 MIN_PULSE_RATIO = 0.9; %minimum ratio of a pulse happening in event
 
 %% Per subject
-i = 1;
-[subject, ~] = getsubjectnamesession(subjects{i});
-subjectData = getsubjectevents(walkingData, subject);
-%% Movement ----
-movingTimes = geteventtimes(subjectData, 'moving');
-movementBlocks = eventtimestotrblocks(movingTimes, TR, SESSION_LENGTH);
-movementBlocks = movementBlocks > MIN_PULSE_RATIO;
-hrfMovement = convolveblockhrf(movementBlocks, TR);
+for i = 1:numel(subjects)
+    [subject, ~] = getsubjectnamesession(subjects{i});
+    subjectData = getsubjectevents(walkingData, subject);
 
-%% Still -------
-stillTimes = geteventtimes(subjectData, 'still');
-stillBlocks = eventtimestotrblocks(stillTimes, TR, SESSION_LENGTH);
-stillBlocks = stillBlocks > MIN_PULSE_RATIO;
-hrfStill  = convolveblockhrf(movementBlocks, TR);
+    %% Movement ----
+    [hrfMovement, hrfStill] = preparehrfmovement(subjectData, TR, SESSION_LENGTH, MIN_PULSE_RATIO);
+    savehrf(hrfMovement, subject, 'moving');
+    savehrf(hrfStill, subject, 'still');
+    %% Pointing ----
+    subjectData = getsubjectevents(pointingData, subject);
 
-%% Pointing ----
-subjectData = getsubjectevents(pointingData, subject);
-pointingTimes = geteventtimes(subjectData);
-pointingBlocks = eventtimestotrblocks(pointingTimes, TR, SESSION_LENGTH);
-pointingBlocks = pointingBlocks > MIN_PULSE_RATIO;
-hrfPoinitng = convolveblockhrf(pointingBlocks, TR);
-
-%% Saving -----
-dlmwrite([subject, '_pointing.txt'], hrfPoinitng);
-%% Loading ----
-dlmread([subject, '_pointing.txt'], hrfPoinitng);
+    hrfPoinitng = preparehrfpointing(subjectData, TR, SESSION_LENGTH, MIN_PULSE_RATIO);
+    savehrf(hrfPoinitng, subject, 'pointing');
+end

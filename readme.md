@@ -23,3 +23,8 @@ to get fmri with the get_fmri function, you need to create a fmri selection tabl
 |-------|-------|-------|-----|------|
 
 
+## Matlab procedure
+There are some requirements on the matlab code. 
+    - SPM package needs to be loaded for the spm_hrf fuciton to work properly. 
+    - the saving and loading of preprpocessed data happens from root/exports/hrf. Threfore you should run the matlab code from the root, not from the fMRI folder
+    - exports/hrf folder needs to be present, the code does not create it on its own
