@@ -65,3 +65,17 @@ components <- load_mri(folder, names_file)
 
 
 create_movement_pulses_table.session(participant[[1]], 3,0.2,5,0.9) 
+
+
+
+
+## Pointing
+for(i in 1:20){
+  quest <- get_quest(participant[[1]]$quests_logs, i)
+  print(quest$type)
+}
+
+pointing_results.session(participant[[1]])
+
+
+plot_quest_path.session(participant[[1]], 1)

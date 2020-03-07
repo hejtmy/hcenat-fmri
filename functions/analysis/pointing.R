@@ -107,7 +107,8 @@ quest_pointing_accuracy <- function(quest, df_player){
   point_end <- player_point_time
   chosen_angle <- pointing_moment$Rotation.X
   result <- list(correct_angle = correct_angle, 
-               chosen_angle = chosen_angle, point_start = point_start, 
+               chosen_angle = chosen_angle, 
+               point_start = point_start, 
                point_end = point_end)
   return(result)
 }

@@ -5,10 +5,13 @@ library(dplyr)
 sapply(list.files("functions", full.names = T, recursive = T), source)
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 # source("scripts/preprocess-participants.R")
+CORRECT_ANGLES <- read.table(file.path(DATA_DIR, "correct-angles.csv"), sep=",", header=TRUE)
 
 load("participants-prepared.RData")
-mg_path <- "images/megamap5.png"
+img_path <- "images/megamap5.png"
 participant_code <- "HCE_E_10"
+
+participant <- participants[[participant_code]]
 
 ## MRI loading ------
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
@@ -20,7 +23,7 @@ fmri <- restructure_mri(components)
 ## Analysis ----
 quest <- get_quest(participant[[1]]$quests_logs, 13)
 get_correct_angle(quest, participant[[1]]$player_log)
-plot_quest_path.session(participant[[2]], 3, img_path)
+plot_quest_path.session(participant[[1]], 3, img_path)
 quest_pointing_accuracy(quest, participant[[1]]$player_log)
 pointing_results.session(participant[[1]])
 pointing_results.participant(participant)
