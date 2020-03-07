@@ -16,11 +16,11 @@ plot_quest_path.session <- function(data, quest_id, img_path){
 plot_quest_path <- function(quest, df_player, experiment_log, img_path){
   obj <- prepare_quest_path(quest, df_player, experiment_log)
   plt <- ggplot() + theme_void() + 
-    geom_navr_backround(img_path, obj$area_boundaries$x, obj$area_boundaries$y) + 
+    geom_navr_background(img_path, obj$area_boundaries$x, obj$area_boundaries$y) + 
     geom_navr_path(obj, size = 1, color="blue")
   start_finish <- get_quest_start_finish_positions(df_player, quest)
   
-  pointed_angle <- obj$data %>% filter(Input == "ChooseDirection") %>% .$Rotation.X
+  pointed_angle <- obj$data %>% filter(Input == "ChooseDirection") %>% pull(rotation_x)
   # add the potential correct angle for B tasks
   correct_angle <- get_correct_angle(quest, df_player)
   plt <- plt + navr::geom_navr_points(start_finish)

@@ -1,8 +1,10 @@
-#' Title
+#' Runs onset stop table for each participant and then binds the results
 #'
+#' @description uses navr::search_onsets under the hood
+#' 
 #' @param participants 
-#' @param speed_threshold 
-#' @param still_threshold 
+#' @param speed_threshold what is the speed which count as a movement
+#' @param still_threshold What is the speed which counts as being still. 
 #' @param min_duration 
 #'
 #' @return
@@ -22,9 +24,9 @@ onset_stop_table.participants <- function(participants, speed_threshold, still_t
   return(out)
 }
 
-#' Title
+#' Runs onset_stop table for each participants session
 #'
-#' @param participant_data 
+#' @param participant
 #' @param speed_threshold 
 #' @param still_threshold 
 #' @param min_duration 
@@ -33,10 +35,10 @@ onset_stop_table.participants <- function(participants, speed_threshold, still_t
 #' @export
 #'
 #' @examples
-onset_stop_table.participant <- function(participant_data, speed_threshold, still_threshold, min_duration){
+onset_stop_table.participant <- function(participant, speed_threshold, still_threshold, min_duration){
   out <- data.frame()
-  for(i in 1:length(participant_data)){
-    session_data <- participant_data[[i]]
+  for(i in 1:length(participant)){
+    session_data <- participant[[i]]
     if(is.null(session_data)) next
     session_results <- onset_stop_table.session(session_data, speed_threshold, still_threshold, min_duration)
     if(nrow(session_results) > 0){
@@ -47,9 +49,9 @@ onset_stop_table.participant <- function(participant_data, speed_threshold, stil
   return(out)
 }
 
-#' Title
+#' Creates onsets and stops table for passed session data
 #'
-#' @param participant_session 
+#' @param session session data
 #' @param speed_threshold 
 #' @param still_threshold 
 #' @param min_duration 
@@ -58,10 +60,12 @@ onset_stop_table.participant <- function(participant_data, speed_threshold, stil
 #' @export
 #'
 #' @examples
-onset_stop_table.session <- function(participant_session, speed_threshold, still_threshold, min_duration){
-  nav <- as.navr(participant_session$player_log, participant_session$experiment_log)
-  nav <- remove_unreal_speeds(nav, 30, "value")
-  onsets <- navr::search_onsets(nav, speed_threshold, min_duration, still_speed_threshold = still_threshold)
+onset_stop_table.session <- function(session, speed_threshold, still_threshold, min_duration){
+  nav <- as.navr(session$player_log, session$experiment_log)
+  nav <- navr::remove_unreal_speeds.navr(nav, 30, "value")
+  onsets <- navr::search_onsets(nav, speed_threshold = speed_threshold, 
+                                min_duration = min_duration,
+                                still_speed_threshold = still_threshold)
   stops <- navr::search_stops(nav, still_threshold, min_duration)
   
   df_onsets <- data.frame(time = onsets$time_since_start,

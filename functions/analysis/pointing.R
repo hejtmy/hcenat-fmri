@@ -1,5 +1,14 @@
 library(dplyr)
 
+#' Calculates pointing results for all participants
+#'
+#' @param participants list of all participants
+#' @param silent should the updates be printed
+#'
+#' @return data.frame with pointing results
+#' @export
+#'
+#' @examples
 pointing_results.participants <- function(participants, silent = FALSE){
   df_results <- data.frame()
   for(participant_name in names(participants)){
@@ -67,8 +76,8 @@ pointing_results <- function(quests_logs, df_player){
     quest_pointing <- as.data.frame(quest_pointing) %>% mutate(quest_order_session = quest_order_session)
     df_results <- rbindlist(list(df_results, quest_pointing), fill = TRUE)
   }
-  return_dt <- merge(df_results, df_quests, by.x = "quest_order_session", by.y = "order_session")
-  return(return_dt)
+  res <- merge(df_results, df_quests, by.x = "quest_order_session", by.y = "order_session")
+  return(res)
 }
 
 #' Returns small data frame 

@@ -9,7 +9,10 @@ df_preprocessing <- load_participant_preprocessing_status()
 
 ## Unity loading -----
 participants <- load_participants(DATA_DIR, df_preprocessing = df_preprocessing, sessions = 1)
-participants <- add_pulses.participants(participants)
+participants <- add_pulses.participants(participants, clean = TRUE)
+
+# Chekc how many participants were not synchronized and why
+
 
 ## ALREADY READY FILES ------
 save(participants, file = "participants-prepared.RData")

@@ -12,7 +12,7 @@ load("participants-prepared.RData")
 df_pointing <- pointing_results.participants(participants)
 df_pointing <- add_fmri_code(df_pointing, "participant", df_preprocessing)
 
-out_pointing <- df_pointing %>% 
+out_pointing <- df_pointing %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
   mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
