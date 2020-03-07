@@ -1,27 +1,85 @@
-onset_stop_table.session <- function(participant_session, speed_threshold, still_threshold, min_duration){
-  nav <- as.navr(participant_session$player_log, participant_session$experiment_log)
-  df_onsets <- onset_table.navr(nav, speed_threshold, min_duration)
-  df_stops <- stop_table.navr(nav, still_threshold, min_duration)
-  df_onsets$movement_type <- "moving"
-  df_stops$movement_type <- "still"
-  df_result <- rbind(df_onsets, df_stops) 
-  return(df_result)
+#' Runs onset stop table for each participant and then binds the results
+#'
+#' @description uses navr::search_onsets under the hood
+#' 
+#' @param participants 
+#' @param speed_threshold what is the speed which count as a movement
+#' @param still_threshold What is the speed which counts as being still. 
+#' @param min_duration 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+onset_stop_table.participants <- function(participants, speed_threshold, still_threshold, min_duration){
+  out <- data.frame()
+  for(participant_name in names(participants)){
+    message("calculating for ", participant_name)
+    participant_results <- onset_stop_table.participant(participants[[participant_name]], speed_threshold, still_threshold, min_duration)
+    if(nrow(participant_results) > 0){
+      participant_results$participant <- participant_name
+      out <- rbind(out, participant_results)
+    } 
+  }
+  return(out)
 }
 
-onset_table.navr <- function(obj, speed_threshold, min_duration){
-  onsets <- navr::search_onsets(obj, speed_threshold, min_duration)
-  onset_obj <- filter_events(obj, onsets$time_since_start, onsets$duration)
-  return(onset_obj$data)
+#' Runs onset_stop table for each participants session
+#'
+#' @param participant
+#' @param speed_threshold 
+#' @param still_threshold 
+#' @param min_duration 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+onset_stop_table.participant <- function(participant, speed_threshold, still_threshold, min_duration){
+  out <- data.frame()
+  for(i in 1:length(participant)){
+    session_data <- participant[[i]]
+    if(is.null(session_data)) next
+    session_results <- onset_stop_table.session(session_data, speed_threshold, still_threshold, min_duration)
+    if(nrow(session_results) > 0){
+      session_results$session <- i
+      out <- rbind(out, session_results)
+    }
+  }
+  return(out)
 }
 
-stop_table.navr <- function(obj, speed_threshold, min_duration){
-  stops <- navr::search_stops(obj, speed_threshold, min_duration)
-  stops_obj <- filter_events(obj, stops$time_since_start, stops$duration)
-  return(stops_obj$data)
-}
-
-filter_events <- function(obj, event_times, durations){
-  mat_events <- matrix(c(event_times, event_times+durations), ncol = 2)
-  obj <- navr::filter_times(obj, mat_events, zero_based=TRUE)
-  return(obj)
+#' Creates onsets and stops table for passed session data
+#'
+#' @param session session data
+#' @param speed_threshold 
+#' @param still_threshold 
+#' @param min_duration 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+onset_stop_table.session <- function(session, speed_threshold, still_threshold, min_duration){
+  nav <- as.navr(session$player_log, session$experiment_log)
+  nav <- navr::remove_unreal_speeds.navr(nav, 30, "value")
+  onsets <- navr::search_onsets(nav, speed_threshold = speed_threshold, 
+                                min_duration = min_duration,
+                                still_speed_threshold = still_threshold)
+  stops <- navr::search_stops(nav, still_threshold, min_duration)
+  
+  df_onsets <- data.frame(time = onsets$time_since_start,
+                       duration = onsets$duration,
+                       movement_type = "moving")
+  
+  df_stops <- data.frame(time = stops$time_since_start,
+                       duration = stops$duration,
+                       movement_type = "still")
+  out <- rbind(df_onsets, df_stops)
+  #need to get it from the navr object
+  first_pulse_time <- nav$data %>%
+    filter(Input == "fMRISynchro") %>% pull(time_since_start) %>%
+    .[1]
+  out$fmri_time <- out$time - first_pulse_time
+  return(out)
 }

@@ -2,17 +2,11 @@ library(data.table)
 library(navr)
 library(dplyr)
 library(ez)
+
 sapply(list.files("functions", full.names = T, recursive = T), source)
-CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
-
-data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
-img_path <- "images/megamap5.png"
-
-df_preprocessing <- load_participant_preprocessing_status()
-
-## Unity loading -----
-participants <- load_participants(data_dir, df_preprocessing = df_preprocessing, sessions = 1)
-participants <- add_pulses.participants(participants)
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+source("scripts/preprocess-participants.R")
+load("participants-prepared.RData")
 
 ## MRI loading ------
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
@@ -47,7 +41,7 @@ pointing_long <- reshape2::melt(pointing_fmri, id.vars=c("pulse_id", "participan
 ggplot(pointing_long, aes(variable, value, fill=correct)) + geom_boxplot()
 
 ### movement ----
-movement_pulses <- create_movement_stop_pulses_table(participants, 3, 0.2, 3)
+movement_pulses <- create_movement_stop_pulses_table(participants, 10, 1, 3)
 movement_fmri <- get_fmri(fmri, movement_pulses)
 head(movement_fmri)
 ggplot(movement_fmri, aes(movement_type, filt_cen_11, fill=movement_type)) + geom_boxplot()

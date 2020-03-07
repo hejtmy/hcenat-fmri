@@ -1,0 +1,22 @@
+---
+title: "Checking movement onsets"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "07/03/2020"
+output: html_document
+---
+```{r setup}
+library(navr)
+library(dplyr)
+img_path <- "../images/megamap5.png"
+sapply(list.files("../functions", full.names = T, recursive = T), source)
+load("../participants-prepared.RData")
+participant <- participants$HCE_E_15[[1]]
+```
+
+
+```{r}
+iQuests <- participant$scenario_log$data %>% filter(StepType == "Activate Quest") %>% pull(StepID) %>% unique()
+for(i in iQuests){
+  print(plot_quest_path.session(participant, i, img_path))
+}
+```

@@ -1,9 +1,16 @@
 # reports
 *.html
-#
+*.csv
 
+# outputs
+exports/
+
+#
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 .httr-oauth
+
+# Matlab
+*.asv

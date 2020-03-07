@@ -1,29 +1,43 @@
 library(dplyr)
 
+#' Calculates pointing results for all participants
+#'
+#' @param participants list of all participants
+#' @param silent should the updates be printed
+#'
+#' @return data.frame with pointing results
+#' @export
+#'
+#' @examples
 pointing_results.participants <- function(participants, silent = FALSE){
   df_results <- data.frame()
   for(participant_name in names(participants)){
     if(!silent) message("calculating for ", participant_name)
-    for(i in 1:length(participants[[participant_name]])){
-      data <- participants[[participant_name]][[i]]
-      if(is.null(data)) next
-      df_session_pointing <- pointing_results.session(data)
-      df_session_pointing$session <- i
-      df_session_pointing$participant <- participant_name
+    participant_results <- pointing_results.participant(participants[[participant_name]])
+    if(nrow(participant_results) > 0){
+      participant_results$participant <- participant_name
+      df_results <- rbind(df_results, participant_results)
+    } 
+  }
+  return(df_results)
+}
+
+#' Works for data for all sessions for a single participant
+pointing_results.participant <- function(data){
+  df_results <- data.frame()
+  for(i in 1:length(data)){
+    session_data <- data[[i]]
+    if(is.null(session_data)) next
+    df_session_pointing <- pointing_results.session(session_data)
+    if(nrow(df_session_pointing) > 0){
       df_results <- rbind(df_results, df_session_pointing)
+      df_session_pointing$session <- i
     }
   }
   return(df_results)
 }
 
 #' Only works for a single session
-#'
-#' @param data 
-#'
-#' @return
-#' @export
-#'
-#' @examples
 pointing_results.session <- function(data){
   result <- pointing_results(data$quests_logs, data$player_log)
   return(result)
@@ -48,17 +62,22 @@ pointing_results <- function(quests_logs, df_player){
       next
     }
     quest_pointing <- quest_pointing_accuracy(quest, df_player) #possble to get NAS in the data frame
-    # Adding the fnru pulses
+    # Adding the fmri pulses
+    first_pulse_time <- get_first_pulse_time(df_player)
+    
     quest_pointing$pulse_start <- get_pulse_at_time(df_player, quest_pointing$point_start)
     quest_pointing$pulse_start_starttime <- get_pulse_timewindow(df_player, quest_pointing$pulse_start)$start
     quest_pointing$pulse_end <- get_pulse_at_time(df_player, quest_pointing$point_end)
     quest_pointing$pulse_end_starttime <- get_pulse_timewindow(df_player, quest_pointing$pulse_end)$start
     
+    quest_pointing$point_start_fmri <- quest_pointing$point_start - first_pulse_time 
+    quest_pointing$point_end_fmri <- quest_pointing$point_end - first_pulse_time 
+    
     quest_pointing <- as.data.frame(quest_pointing) %>% mutate(quest_order_session = quest_order_session)
     df_results <- rbindlist(list(df_results, quest_pointing), fill = TRUE)
   }
-  return_dt <- merge(df_results, df_quests, by.x = "quest_order_session", by.y = "order_session")
-  return(return_dt)
+  res <- merge(df_results, df_quests, by.x = "quest_order_session", by.y = "order_session")
+  return(res)
 }
 
 #' Returns small data frame 
@@ -94,9 +113,7 @@ quest_pointing_accuracy <- function(quest, df_player){
 }
 
 get_correct_angle <- function(quest, df_player){
-  if(!exists("CORRECT_ANGLES")){
-    stop("You need to load the CORRECT_ANGLES first from the data folder") 
-  }
+  if(!exists("CORRECT_ANGLES")) stop("You need to load the CORRECT_ANGLES first from the data folder") 
   quest_start_finish <- get_quest_start_finish_positions(df_player, quest, include_teleport = FALSE)
   if(quest$name %in% CORRECT_ANGLES$name){
     correct_angle <- CORRECT_ANGLES$target_angle[CORRECT_ANGLES$name == quest$name]
