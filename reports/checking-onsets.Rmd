@@ -17,6 +17,6 @@ participant <- participants$HCE_E_15[[1]]
 ```{r}
 iQuests <- participant$scenario_log$data %>% filter(StepType == "Activate Quest") %>% pull(StepID) %>% unique()
 for(i in iQuests){
-  print(plot_quest_path.session(participant, i, img_path))
+
 }
 ```

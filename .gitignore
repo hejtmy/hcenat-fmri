@@ -1,6 +1,8 @@
 # reports
 *.html
 *.csv
+reports/participants/
+
 
 # outputs
 exports/

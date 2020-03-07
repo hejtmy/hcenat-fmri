@@ -15,6 +15,7 @@ plot_quest_path.session <- function(data, quest_id, img_path = NULL){
 #' @return graph of the learned and trial path
 plot_quest_path <- function(quest, df_player, experiment_log, img_path = NULL){
   obj <- prepare_quest_path(quest, df_player, experiment_log)
+  if(is.null(obj)) return(NULL)
   plt <- ggplot() + theme_void()
   if(!is.null(img_path)) plt <- plt + geom_navr_background(img_path, obj$area_boundaries$x, obj$area_boundaries$y)
   plt <- plt + geom_navr_path(obj, size = 1, color="blue")
@@ -34,6 +35,10 @@ plot_quest_path <- function(quest, df_player, experiment_log, img_path = NULL){
 
 prepare_quest_path <- function(quest, df_player, experiment_log){
   df_player <- get_quest_player_log(quest, df_player, include_teleport = FALSE)
+  if(nrow(df_player) < 10){
+    warning("the quest ", quest$name, " for ", quest$header$Patient, " data is missing")
+    return(NULL)
+  }
   obj <- as.navr(df_player, experiment_log)
   return(obj)
 }

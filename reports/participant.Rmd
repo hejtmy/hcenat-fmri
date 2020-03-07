@@ -1,0 +1,37 @@
+---
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "02/07/2020"
+output: html_document
+params:
+  code: HCE_E_12
+  session: 1
+title: "`r paste0('Participant data ', params$code, ' session ', params$session)`"
+---
+
+```{r, warning=F, setup, message=F, results='hide', echo=FALSE}
+library(navr)
+library(dplyr)
+library(data.table)
+sapply(list.files("../functions", full.names = T, recursive = T), source)
+data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+CORRECT_ANGLES <- read.table(file.path(data_dir, "correct-angles.csv"), sep=",", header=TRUE)
+img_path <- "../images/megamap5.png"
+load("../participants-prepared.RData")
+participant <- participants[[params$code]][[params$session]]
+```
+
+```{r, warning=FALSE, message=FALSE, results='asis', echo=FALSE}
+iQuests <- participant$scenario_log$data %>% filter(StepType == "Activate Quest") %>% pull(StepID) %>% unique()
+for(i in iQuests){
+  cat('<p>')  
+  plt <- plot_quest_path.session(participant, i, img_path)
+  if(is.null(plt)){
+    quest <- get_quest(participant$quests_logs, i)
+    title_text <- paste0(quest$header$Patient, " trial: ", quest$name)
+    print(paste0(title_text, "data is missing"))
+    next
+  } 
+  print(plt)
+  cat('</p>')
+}
+```
