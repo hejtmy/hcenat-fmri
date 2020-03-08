@@ -1,9 +1,19 @@
 MAP_LIMITS <- list(x=c(-1378,1622), y=c(-1367,1133))
 PLOT_LIMITS <- list(x=c(-1000,1000), y=c(-800,500))
 
-plot_quest_path.session <- function(data, quest_id, img_path = NULL){
-  quest <- get_quest(data$quests_logs, quest_id)
-  return(plot_quest_path(quest, data$player_log, data$experiment_log, img_path))
+#' Plots quest path for given session data
+#'
+#' @param session session data
+#' @param i_quest 
+#' @param img_path 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_quest_path.session <- function(session, i_quest, img_path = NULL){
+  quest <- get_quest(session$quests_logs, i_quest)
+  return(plot_quest_path(quest, session$player_log, session$experiment_log, img_path))
 }
 
 #' Draws by default learnd and return path of a quest
@@ -22,6 +32,7 @@ plot_quest_path <- function(quest, df_player, experiment_log, img_path = NULL){
   
   start_finish <- get_quest_start_finish_positions(df_player, quest)
   pointed_angle <- obj$data %>% filter(Input == "ChooseDirection") %>% pull(rotation_x)
+  
   # add the potential correct angle for B tasks
   correct_angle <- get_correct_angle(quest, df_player)
   plt <- plt + navr::geom_navr_points(start_finish)
@@ -33,6 +44,7 @@ plot_quest_path <- function(quest, df_player, experiment_log, img_path = NULL){
   return(plt)
 }
 
+# Prepares path for a given quest as a navr object
 prepare_quest_path <- function(quest, df_player, experiment_log){
   df_player <- get_quest_player_log(quest, df_player, include_teleport = FALSE)
   if(nrow(df_player) < 10){

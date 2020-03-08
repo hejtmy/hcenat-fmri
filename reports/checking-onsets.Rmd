@@ -7,16 +7,61 @@ output: html_document
 ```{r setup}
 library(navr)
 library(dplyr)
+library(data.table)
 img_path <- "../images/megamap5.png"
 sapply(list.files("../functions", full.names = T, recursive = T), source)
 load("../participants-prepared.RData")
 participant <- participants$HCE_E_15[[1]]
+nav <- as.navr(participant$player_log, participant$experiment_log)
+nav <- navr::remove_unreal_speeds(nav, cutoff=30, type="value")
 ```
-
 
 ```{r}
-iQuests <- participant$scenario_log$data %>% filter(StepType == "Activate Quest") %>% pull(StepID) %>% unique()
-for(i in iQuests){
-
-}
+onsets_stops <- onset_stop_table.session(participant, speed_threshold = 5, min_duration = 3, 
+                                         still_threshold = 1, still_duration = 2, pause_duration = 0.3)
+onsets <- onsets_stops  %>% filter(movement_type == "moving")
+stops <- onsets_stops %>% filter(movement_type == "still")
 ```
+
+plots speeds and events of movement
+```{r}
+navr::plot_speed(obj = nav) +
+  navr::geom_navr_timeseries_events(onsets$time, durations = onsets$duration, color = "green")
+```
+
+plot movements as the path
+```{r}
+plt <- ggplot()
+for(i in 1:length(onsets$time)){
+  nav_moving <- filter_times(nav, times = c(onsets$time[i], onsets$time[i] + onsets$duration[i]), zero_based= TRUE)
+  plt <- plt + geom_navr_path(nav_moving, color = onsets$duration[i])
+}
+plt 
+```
+
+## Episodes of stillness
+
+Taking look at speed profile and searched stops
+```{r}
+navr::plot_speed(obj = nav) + 
+  navr::geom_navr_timeseries_events(stops$time, durations = stops$duration, color = "green")
+```
+
+and a bit more closely
+```{r}
+navr::plot_speed(obj = nav) + 
+  navr::geom_navr_timeseries_events(stops$time, durations = stops$duration, color = "green") +
+  xlim(100,200)
+```
+
+```{r}
+plt <- ggplot()
+#♦for(i in 1:length(stops$time)){
+for(i in 1:5){
+  nav_still <- filter_times(nav, times = c(stops$time[i], stops$time[i] + stops$duration[i]), zero_based= TRUE)
+  plt <- plt + geom_navr_path(nav_still, add_points = TRUE)
+}
+plt
+```
+
+I'd say a pretty good result. The jumps are teleports. 

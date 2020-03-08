@@ -43,7 +43,8 @@ pointing_fmri <- get_fmri(fmri, pointing_pulses)
 ```
 
 ```{r, echo=F, warning=FALSE, results='asis'}
-# need to remove participants who don't have enough correct/incorrect poiontings . those with only correct or incorrect needs to be removed
+# need to remove participants who don't have enough correct/incorrect poiontings.
+# those with only correct or incorrect needs to be removed
 good_proportions_participant <- pointing_fmri %>% group_by(participant) %>% 
   summarize(percent_correct = sum(correct)/n()) %>% 
   filter(percent_correct > 0.15 & percent_correct < 0.85) %>%
