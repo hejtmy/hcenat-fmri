@@ -4,6 +4,7 @@ library(dplyr)
 library(ez)
 sapply(list.files("functions", full.names = T, recursive = T), source)
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+CORRECT_ANGLES <- read.table(file.path(DATA_DIR, "correct-angles.csv"), sep=",", header=TRUE)
 # source("scripts/preprocess-participants.R")
 
 load("participants-prepared.RData")
