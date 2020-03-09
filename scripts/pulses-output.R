@@ -32,3 +32,7 @@ out_onset_stop <- df_onset_stop %>%
   select(fmri_code, time, duration, movement_type)
 
 write.table(out_onset_stop, file.path("exports","walking.csv"), row.names = FALSE, sep=",", quote = FALSE)
+
+## Speeds ------
+
+head(participants$HCE_E_10[[1]]$player_log) %>% group_by(pulse_id) %>% summarise(mean(speed))

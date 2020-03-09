@@ -20,3 +20,7 @@ as.navr <- function(df_player, experiment_log){
   obj$data$speed[obj$data$Input == "Pause"] <- NA_real_ #should fix the issue with onset and stop search
   return(obj)
 }
+
+as.navr.session <- function(session){
+  return(as.navr(session$player_log, session$experiment_log))
+}
