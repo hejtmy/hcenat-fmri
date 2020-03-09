@@ -28,6 +28,7 @@ components <- rename_mri_participants(components, df_preprocessing)
 fmri <- restructure_mri(components)
 ```
 
+
 ```{r, echo=F, warning=F, message=FALSE}
 ## Analysis ----
 df_pointing <- pointing_results.participants(participants)
@@ -41,6 +42,7 @@ component_names <- c("filt_cen_11", "filt_cen_16", "filt_cen_23", "filt_cen_37",
 pointing_pulses <- create_pointing_pulses_table(df_pointing)
 pointing_fmri <- get_fmri(fmri, pointing_pulses)
 ```
+
 
 ```{r, echo=F, warning=FALSE, results='asis'}
 # need to remove participants who don't have enough correct/incorrect poiontings.

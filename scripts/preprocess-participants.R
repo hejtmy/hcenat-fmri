@@ -13,6 +13,5 @@ participants <- add_pulses.participants(participants, clean = TRUE)
 
 # Chekc how many participants were not synchronized and why
 
-
 ## ALREADY READY FILES ------
 save(participants, file = "participants-prepared.RData")
