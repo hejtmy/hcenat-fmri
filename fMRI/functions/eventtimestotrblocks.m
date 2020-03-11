@@ -3,8 +3,8 @@ function trblocks = eventtimestotrblocks(eventTimes, tr, sessionLength)
 %   into a vector of percentage of tr that the event took place
 % PARAMETERS
 %   eventTimes: 2D matrix with [startTime, endTime], nrow is the numebr of
-%   events
-%   tr: time of a single block
+%       events
+%   tr: time of a single fMRI scan
 %   sessionLength: number of TR blocks which were in a single session
 % RETURNS
 %   vector of length session length with a number between 0-1, defiining
@@ -32,7 +32,6 @@ for i = 1:numel(startPulses)
 end
 
 trblocks(startPulses) = startProportions;
-% situation when participants both stops and starts in the same pulse
+% situation when there are both stops and starts in the same pulse
 trblocks(endPulses) = trblocks(endPulses) + endProportions;
-
 end

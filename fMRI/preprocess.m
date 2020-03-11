@@ -25,14 +25,16 @@ MIN_PULSE_RATIO = 0.9; %minimum ratio of a pulse happening in event
 for i = 1:numel(subjects)
     [subject, ~] = getsubjectnamesession(subjects{i});
     subjectData = getsubjectevents(walkingData, subject);
-
+    disp(['Preparing subject ' subject]);
     %% Movement ----
-    [hrfMovement, hrfStill] = preparehrfmovement(subjectData, TR, SESSION_LENGTH, MIN_PULSE_RATIO);
+    [hrfMovement, hrfStill] = preparehrfmovement(subjectData, TR,...
+        SESSION_LENGTH, MIN_PULSE_RATIO);
     savehrf(hrfMovement, subject, 'moving');
     savehrf(hrfStill, subject, 'still');
+    
     %% Pointing ----
     subjectData = getsubjectevents(pointingData, subject);
-
-    hrfPoinitng = preparehrfpointing(subjectData, TR, SESSION_LENGTH, MIN_PULSE_RATIO);
+    hrfPoinitng = preparehrfpointing(subjectData, TR,...
+        SESSION_LENGTH, MIN_PULSE_RATIO);
     savehrf(hrfPoinitng, subject, 'pointing');
 end

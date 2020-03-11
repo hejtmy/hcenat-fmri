@@ -24,7 +24,7 @@ for i = 1:size(subs,1)
     subMovingTime = walkingTime(subMoving); % extract 'moving' onsets
      % QUESTION - can't this result in pulse 0?
      % QUESTION - how this handles situation where some events start say at
-     % the time of 3.1 and others at 5.9? isn't hat the same result,
+     % the time of 3.1 and others at 5.9? isn't that the same result,
      % although in some cases it "saturates" the entire pulse and in other
      % cases it barely impacts it? what about situation where the event is
      % from time 4.54-5.99. Does that get "discarded" completely?
