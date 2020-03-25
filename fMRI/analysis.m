@@ -17,7 +17,6 @@ end
 
 %% Correlations
 % correlations are 2d matrices of component x subject
-subjects = cell(numel(subjects));
 for i = 1:numel(subjects)
     [subject, ~] = getsubjectnamesession(subjects{i});
     subjects{i} = subject;
