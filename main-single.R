@@ -9,9 +9,9 @@ CORRECT_ANGLES <- read.table(file.path(DATA_DIR, "correct-angles.csv"), sep=",",
 
 load("participants-prepared.RData")
 img_path <- "images/megamap5.png"
-participant_code <- "HCE_E_10"
+participant_code <- "HCE_E_13"
 
-participant <- participants[[participant_code]]
+participant <- participants[[participant_code]][[1]]
 
 ## MRI loading ------
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
@@ -21,20 +21,12 @@ components <- rename_mri_participants(components, df_preprocessing)
 fmri <- restructure_mri(components)
 
 ## Analysis ----
-quest <- get_quest(participant[[1]]$quests_logs, 13)
-get_correct_angle(quest, participant[[1]]$player_log)
-plot_quest_path.session(participant[[1]], 3, img_path)
-quest_pointing_accuracy(quest, participant[[1]]$player_log)
-pointing_results.session(participant[[1]])
-pointing_results.participant(participant)
-pointing_results.participants(participants)
+quest <- get_quest(participant$quests_logs, 13)
+get_correct_angle(quest, participant$player_log)
+plot_quest_path.session(participant, 3, img_path)
+quest_pointing_accuracy(quest, participant$player_log)
+pointing_results.session(participant)
 
 ## fmri analysis ----
-movement_pulses <- create_movement_pulses_table.session(participant[[1]], 3, 0.2, 5, 0.9) %>%
-  mutate(session=1, participant=participant_code)
-movement_fmri <- get_fmri(fmri, movement_pulses)
-movement_fmri %>% 
-  filter(movement_type=="still") %>% 
-  lm(rotation_sum ~ filt_cen_11, data = .) %>% summary()
-
-## Pulses output
+movement_pulses <- onset_stop_table.session(participant, speed_threshold = 10, min_duration = 3, 
+                                            still_threshold = 1, still_duration = 1, pause_duration = 0.3)
