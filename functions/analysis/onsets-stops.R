@@ -89,7 +89,8 @@ onset_stop_table.session <- function(session, speed_threshold, still_threshold =
                        duration = stops$duration,
                        movement_type = "still")
   out <- rbind(df_onsets, df_stops)
-  first_pulse_time <- get_first_pulse_time(session$player_log)
+  first_pulse_time <- nav$data %>% filter(pulse_id == 1) %>% 
+    pull(time_since_start) %>% .[1]
   out$fmri_time <- out$time - first_pulse_time
   return(out)
 }

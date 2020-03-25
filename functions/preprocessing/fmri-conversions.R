@@ -14,6 +14,25 @@ rename_mri_participants <- function(components, df_participants){
 }
 
 
+#' Returns mfpri code for a particular participant
+#'
+#' @param code 
+#' @param df_preprocessing 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fmri_code <- function(code, df_preprocessing){
+  line <- df_preprocessing[df_preprocessing$ID == code,]
+  if(nrow(line) != 1){
+    warning("bad code passed")
+    return(NULL)
+  }
+  return(line$fmri_code)
+}
+
+
 #' Flips fmri data so that each participant has a single data frame with all components as columns
 #'
 #' @param components 
