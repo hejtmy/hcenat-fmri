@@ -1,0 +1,99 @@
+---
+title: "Correlations"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "25/03/2020"
+output: html_document
+---
+```{r, message=FALSE, warning=TRUE, echo=FALSE}
+library(data.table)
+library(navr)
+library(dplyr)
+library(knitr)
+sapply(list.files("../functions", full.names = T, recursive = T), source)
+data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+img_path <- "../images/megamap5.png"
+
+df_preprocessing <- load_participant_preprocessing_status()
+
+# Load compomnets
+folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
+names_file <- file.path(data_dir, "../MRI-data-tomecek/subs_20190830_1422.txt")
+components <- load_mri(folder, names_file)
+components <- rename_mri_participants(components, df_preprocessing)
+fmri <- restructure_mri(components)
+component_names <- names(components)
+
+participant_names <- names(components[[1]])
+hrf_series <- c("moving", "pointing", "still")
+hrf_folder <- file.path("..", "exports", "hrf")
+speed_folder <- file.path("..", "exports", "speeds")
+hrfs <- list()
+for(name in participant_names){
+  code <- fmri_code(name, df_preprocessing)
+  if(is.null(code)){
+    message("Skipping participant ", code, ". Doesn't have a valid fmri code\n") 
+  }
+  # skips the non OK recordings as they have no data
+  if(!df_preprocessing$session1_ok[df_preprocessing$ID == name]){
+    message("Skipping participant ", code, ". Doesn't have a valid session behavioral data\n") 
+    next
+  }
+  f <- file.path(speed_folder, paste0(code, "_speed.txt"))
+  hrfs$speed[[name]] <- scan(f, quiet = TRUE)
+  for(hrf in hrf_series){
+    f <- file.path(hrf_folder, paste0(code, "_", hrf, ".txt"))
+    hrfs[[hrf]][[name]] <- scan(f, quiet = TRUE)
+    if(length(hrfs[[hrf]][[name]]) != 400){
+      warning(name, " ", hrf, " has length ", length(hrfs[[hrf]][[name]]))
+    }
+  }
+}
+```
+
+## Correlate
+```{matlab}
+
+%% Correlations
+% correlations are 2d matrices of component x subject
+subjects = cell(numel(subjects));
+for i = 1:numel(subjects)
+    [subject, ~] = getsubjectnamesession(subjects{i});
+    subjects{i} = subject;
+    moving = readhrf(subject, 'moving');
+    still = readhrf(subject, 'still');
+    pointing = readhrf(subject, 'pointing');
+    
+    % Butterworth filter
+    % comps(:,:,i) = butter_filter(comps(:,:,i),tr,0.009,0.05);
+
+    corrIcMoveP(:,i) = corr(moving,components(:,:,i)');
+corrIcStillP(:,i) = corr(still,components(:,:,i)');
+    corrIcPointP(:,i) = corr(pointing,components(:,:,i)');
+
+% Spearman
+corrIcMoveS(:,i) = corr(moving,components(:,:,i)','Type','Spearman');
+    corrIcStillS(:,i) = corr(still,components(:,:,i)','Type','Spearman');
+corrIcPointS(:,i) = corr(pointing,components(:,:,i)','Type','Spearman');
+end
+
+%% Averaging
+meanCorrMoveP = mean(corrIcMoveP,2,'omitnan');
+meanCorrStillP = mean(corrIcStillP,2,'omitnan');
+meanCorrPointP = mean(corrIcPointP,2,'omitnan');
+
+%% PLOTS
+figure
+subplot(131)
+correlationmatrix(corrIcMoveP, 'corr (Pearson) IC moving', subjects, componentNames);
+subplot(132);
+correlationmatrix(corrIcStillP, 'corr (Pearson) IC still', subjects, componentNames);
+subplot(133)
+correlationmatrix(corrIcPointP, 'corr (Pearson) IC pointing', subjects, componentNames);
+
+figure('Position',[173,282,1656,532])
+bar([meanCorrMoveP,meanCorrStillP,meanCorrPointP])
+legend('moving','still','pointing')
+title('mean corr. (Pearson) IC & moving, still, pointing')
+xticks(1:numel(componentNames))
+xticklabels(componentNames)
+```
