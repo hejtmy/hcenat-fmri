@@ -3,6 +3,7 @@
 *.csv
 reports/participants/
 
+!docs/*
 
 # outputs
 exports/
