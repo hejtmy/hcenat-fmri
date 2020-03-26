@@ -2,9 +2,11 @@
 title: "Correlations"
 author: "Lukáš 'hejtmy' Hejtmánek"
 date: "25/03/2020"
-output: html_document
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
 ---
-```{r setup, message=FALSE, warning=TRUE, echo=FALSE}
+```{r setup, message=FALSE, warning=FALSE, results='hide', echo=FALSE}
 library(navr)
 library(plotly)
 library(crosstalk)
@@ -16,7 +18,7 @@ data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 img_path <- "../images/megamap5.png"
 ```
 
-```{r loading-data, echo=FALSE, warning=TRUE}
+```{r loading-data, message=FALSE, echo=FALSE, warning=TRUE}
 df_preprocessing <- load_participant_preprocessing_status()
 
 # Load components
@@ -58,8 +60,6 @@ for(name in good_participants){
   }
 }
 ```
-
-## Correlate
 ```{r calculate-correlations}
 correlations <- data.frame(stringsAsFactors = FALSE)
 for(name in good_participants){
@@ -83,7 +83,15 @@ avg_cor <- cor_long %>%
   summarize(average = mean(value))
 ```
 
-## Visualisations
+-------------------------------------------------
+
+#### Overview
+How all this works
+
+-----------------------------------------------
+
+### Summative visualisation
+
 ```{r}
 shared_cor_long_events <- cor_long %>%
   SharedData$new()
@@ -96,10 +104,14 @@ bscols(
   list(
     widgets,
       plot_ly(data = shared_cor_long_events, x=~component, y=~value, color=~component) %>%
-        add_trace(type="box", boxpoints = "all", jitter = 0.3, showlegend=FALSE)
+        add_trace(type="box", hoverinfo="y", showlegend=FALSE, 
+                  boxmean=TRUE, boxpoints="all", jitter=1,
+                  boxpoints=TRUE, hoveron="boxes")
   )
 )
 ```
+
+### Separate fMRI conponent
 
 ```{r}
 shared_cor_long <- cor_long %>%
