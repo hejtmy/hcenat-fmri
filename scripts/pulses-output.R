@@ -37,6 +37,7 @@ write.table(out_onset_stop, file.path("exports","walking.csv"), row.names = FALS
 for(id in names(participants)){
   message('writing speed for ', id)
   speeds <- pulse_average_speeds.session(participants[[id]][[1]])
+  speeds <- round(speeds, 4)
   fmri_id <- df_preprocessing$fmri_code[df_preprocessing$ID == id]
   filename <- file.path('exports', 'speeds', paste0(fmri_id, '_speed.txt'))
   data.table::fwrite(list(speeds), filename)
