@@ -92,7 +92,9 @@ avg_cor <- cor_long %>%
 -------------------------------------------------
 
 #### Overview
-How all this works
+Vlevo jsou boxploty za všechny komponenty. Je nutné nejdřív vybrat patřičný event, v defaultu je to vykreselno na půrměr pro všechny. Tečky jsou jednotlivé korelace pro daný event a komponentu pro jednoho participanta. Jedná se o Pearsonovy korelace. 
+
+Vpravo je pak možnost vybrat konkrétní komponentu a podívat se, jak reaguje v různých situacích. V základu je tam opět vykresleno vše, je nutné zvolit jednu konkrétní komponentu.
 
 -----------------------------------------------
 
