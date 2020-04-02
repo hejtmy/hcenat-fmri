@@ -1,12 +1,33 @@
-#' Title
-#'
+quest_summary.participants <- function(obj){
+  res <- data.frame()
+  for(participant_name in names(obj)){
+    message("calculating for participant ", participant_name)
+    participant <- obj[[participant_name]]
+    df_participant <- quests_summary.participant(participant)
+    if(nrow(df_participant) > 0) res <- rbind(res, df_participant)
+  }
+  return(res)
+}
+
+quests_summary.participant <- function(obj){
+  res <- data.frame()
+  for(i in length(obj)){
+    df_session <- quests_summary.session(obj[[1]])
+    if(nrow(df_session) > 0) res <- rbind(res, df_session)
+  }
+  return(res)
+}
+
+quests_summary.session <- function(data){
+  df_quests <- df_quests_info(data$quests_logs)
+  pointing <- pointing_results.session(data)
+  result <- quests_summary(df_quests, data$quests_logs, data$player_log)
+  if(!is.null(pointing)) result <- merge(pointing, result, by=c("name", "quest_order_session"), all=TRUE)
+  return(result)
+}
+
 #' @param df_quests dataframe as created by the df_quests_info function
 #' @param df_player 
-#'
-#' @return
-#' @export
-#'
-#' @examples
 quests_summary <- function(df_quests, quests_logs, df_player){
   df_result <- data.frame()
   for(i in 1:nrow(df_quests)){
@@ -16,18 +37,11 @@ quests_summary <- function(df_quests, quests_logs, df_player){
   }
   return(df_result)
 }
-#' shorthand for the loaded data
-quests_summary.session <- function(data){
-  df_quests <- df_quests_info(data$quests_logs)
-  pointing <- pointing_results.session(data)
-  result <- quests_summary(df_quests, data$quests_logs, data$player_log)
-  if(!is.null(pointing)) result <- merge(pointing, result, by=c("name", "quest_order_session"), all=TRUE)
-  return(result)
-}
 
+#' single quest results
 quest_summary <- function(quest, df_player){
   result <- list()
-  quest_times <- get_quest_timewindow(quest, include_teleport = F) #can be null
+  quest_times <- get_quest_timewindow(quest, include_teleport = FALSE) #can be null
   result$name <- quest$name
   result$quest_order_session <- quest$order_session
   result$time <- ifelse(is.null(quest_times), NA, diff(c(quest_times$start, quest_times$finish)))
@@ -38,10 +52,11 @@ quest_summary <- function(quest, df_player){
   result$walked_distance <- diff(range(player_log$cumulative_distance))
   result$finished <- was_quest_finished(quest)
   result$distance_to_last_step <- distance_to_last_step(quest, player_log)
-  #result$n_deliberation_stops <- nrow(get_deliberation_stops(player_log))
   return(result)
 }
 
+
+# Helpers --------
 distance_to_last_step <- function(quest, df_player){
   lastPosition <- get_last_player_position_quest(quest, df_player)
   questLastPosition <- get_last_quest_position(quest) #keeping only X and Z
@@ -54,17 +69,4 @@ get_last_player_position_quest <- function(quest, df_player){
   t <- get_quest_finish_time(quest) - 0.5 #hack because fo how the player log is selected
   pos <- get_player_position_at_time(df_player, t)
   return(pos)
-}
-
-get_deliberation_stops <- function(df_player, deliberation_time = 3, tolerance = 0, remove_start = T){
-  # we gonna assume that the log is quite orderly and that it recorded every n-ms
-  pl <- copy(df_player)
-  pl[, time_diff := c(0, diff(Time))]
-  pl[, dist_id:= rleid(distance)] #creates an id for rows with consecutive values
-  pl <- pl[distance <= tolerance] # removing non-0 parts
-  pl[, time_delib := sum(time_diff), by = dist_id]
-  if(remove_start) pl <- pl[dist_id > 2]
-  pl <- pl[time_delib > deliberation_time, .SD[1], by = dist_id]
-  pl[, c('dist_id', 'time_diff') := NULL]
-  return(pl)
 }

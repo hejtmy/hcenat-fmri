@@ -7,6 +7,7 @@ pulse_average_speeds.participants <- function(participants){
   }
   return(res)
 }
+
 pulse_average_speeds.participant <- function(participant){
   res <- data.frame()
   for(i in length(participant)){

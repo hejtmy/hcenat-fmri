@@ -2,14 +2,7 @@
 #'
 #' @description uses navr::search_onsets under the hood
 #' 
-#' @param participants 
-#' @param speed_threshold what is the speed which count as a movement
-#' @param still_threshold What is the speed which counts as being still. 
-#' @param min_duration 
-#' @param pause_duration 
-#'
 #' @return
-#' @export
 #'
 #' @examples
 onset_stop_table.participants <- function(participants, speed_threshold, still_threshold, 
@@ -30,15 +23,7 @@ onset_stop_table.participants <- function(participants, speed_threshold, still_t
 
 #' Runs onset_stop table for each participants session
 #'
-#' @param participant
-#' @param speed_threshold 
-#' @param still_threshold 
-#' @param min_duration
-#' @param pause_duration
-#'
 #' @return
-#' @export
-#'
 #' @examples
 onset_stop_table.participant <- function(participant, speed_threshold, still_threshold, 
                                          min_duration, still_duration, pause_duration){
@@ -57,17 +42,16 @@ onset_stop_table.participant <- function(participant, speed_threshold, still_thr
   return(out)
 }
 
-#' Creates onsets and stops table for passed session data
+#' Creates onsets and stops table for passed session data. Returnes fMRI times
 #'
 #' @param session session data
-#' @param speed_threshold 
-#' @param still_threshold 
+#' @param speed_threshold what is the speed which count as a movement
+#' @param still_threshold What is the speed which counts as being still. 
 #' @param min_duration 
 #' @param still_duration time of required stillness before movement is considered as movement onset. Prevents sudden onsets
 #' @param pause_duration 
 #'
 #' @return
-#' @export
 #'
 #' @examples
 onset_stop_table.session <- function(session, speed_threshold, still_threshold = speed_threshold,

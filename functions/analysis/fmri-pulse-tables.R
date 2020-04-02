@@ -18,10 +18,6 @@ create_pointing_pulses_table <- function(df_pointing, angle_correct = 20){
   return(result)
 }
 
-create_pointing_pulses_table.session <- function(data, angle_correct = 20){
-  
-}
-
 create_pointing_pulses_table.participant <- function(data, angle_correct = 20){
   df_pointing <- pointing_results.session()
 }
