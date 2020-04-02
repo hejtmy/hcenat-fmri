@@ -22,16 +22,47 @@ out_pointing <- df_pointing %>%
 
 write.table(out_pointing, file.path("exports", "pointing.csv"), row.names = FALSE, sep=",", quote = FALSE)
 
+## Results 
+res <- quest_summary.participants(participants)
+res <- add_fmri_code(res, "participant", df_preprocessing)
+
 ## Onsets -----
 df_onset_stop <- onset_stop_table.participants(participants, speed_threshold = 10, min_duration = 3, 
-                                               still_threshold = 1, still_duration = 1, pause_duration = 0.3)
+                                               still_threshold = 1, still_duration = 1, pause_duration = 0.5)
 df_onset_stop <- add_fmri_code(df_onset_stop, "participant", df_preprocessing)
 
-out_onset_stop <- df_onset_stop %>%
-  mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
-  select(fmri_code, time, duration, movement_type)
+# Adds question information
+df_onset_stop$quest <- NA
+non_na_res <- res[!is.na(res$time) & !is.na(res$point_start),]
+for(i in 1:nrow(non_na_res)){
+  line <- non_na_res[i,]
+  iFit <- df_onset_stop$ID == line$ID &
+          df_onset_stop$time > line$point_start & 
+          df_onset_stop$time + df_onset_stop$duration < line$point_start + line$time
+  if(sum(iFit) > 0) df_onset_stop[iFit, ]$quest <- line$quest_order_session
+}
 
-write.table(out_onset_stop, file.path("exports","walking.csv"), row.names = FALSE, sep=",", quote = FALSE)
+df_onset_stop <- res %>%
+  select(ID, quest=quest_order_session, type) %>%
+  right_join(df_onset_stop, by=c("ID", "quest"))
+
+# Exporting
+df_onset_stop %>%
+  mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
+  select(fmri_code, time, duration, movement_type) %>%
+  write.table(., file.path("exports","walking.csv"), row.names = FALSE, sep=",", quote = FALSE)
+
+df_onset_stop %>%
+  filter(type == "trial") %>%
+  mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
+  select(fmri_code, time, duration, movement_type) %>%
+  write.table(., file.path("exports","walking-trial.csv"), row.names = FALSE, sep=",", quote = FALSE)
+
+df_onset_stop %>%
+  filter(type == "learn") %>%
+  mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
+  select(fmri_code, time, duration, movement_type) %>%
+  write.table(., file.path("exports","walking-learn.csv"), row.names = FALSE, sep=",", quote = FALSE)
 
 ## Speeds ------
 for(id in names(participants)){
@@ -42,3 +73,5 @@ for(id in names(participants)){
   filename <- file.path('exports', 'speeds', paste0(fmri_id, '_speed.txt'))
   data.table::fwrite(list(speeds), filename)
 }
+
+## Rotations -----

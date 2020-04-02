@@ -4,6 +4,7 @@ quest_summary.participants <- function(obj){
     message("calculating for participant ", participant_name)
     participant <- obj[[participant_name]]
     df_participant <- quests_summary.participant(participant)
+    df_participant$participant <- participant_name
     if(nrow(df_participant) > 0) res <- rbind(res, df_participant)
   }
   return(res)
@@ -13,6 +14,7 @@ quests_summary.participant <- function(obj){
   res <- data.frame()
   for(i in length(obj)){
     df_session <- quests_summary.session(obj[[1]])
+    df_session$session <- i
     if(nrow(df_session) > 0) res <- rbind(res, df_session)
   }
   return(res)
