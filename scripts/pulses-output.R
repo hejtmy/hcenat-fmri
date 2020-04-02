@@ -9,11 +9,13 @@ df_preprocessing <- load_participant_preprocessing_status()
 
 load("participants-prepared.RData")
 
-## Pointing ------
-df_pointing <- pointing_results.participants(participants)
-df_pointing <- add_fmri_code(df_pointing, "participant", df_preprocessing)
+## Results ----
+res <- quest_summary.participants(participants)
+res <- add_fmri_code(res, "participant", df_preprocessing)
 
-out_pointing <- df_pointing %>%
+## Pointing ------
+
+out_pointing <- res %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
   mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
@@ -21,10 +23,6 @@ out_pointing <- df_pointing %>%
   select(-c(correct_angle, chosen_angle, time_end))
 
 write.table(out_pointing, file.path("exports", "pointing.csv"), row.names = FALSE, sep=",", quote = FALSE)
-
-## Results 
-res <- quest_summary.participants(participants)
-res <- add_fmri_code(res, "participant", df_preprocessing)
 
 ## Onsets -----
 df_onset_stop <- onset_stop_table.participants(participants, speed_threshold = 10, min_duration = 3, 
@@ -84,3 +82,16 @@ for(id in names(participants)){
   rotations <- rotations[, c("x", "y", "total")]
   write.table(rotations, filename, sep=",", row.names = FALSE)
 }
+
+res_pulses <- data.frame()
+for(participant_name in names(hrfs)){
+  rot_x <- hrfs[[name]]$rotation_x
+  part_res <- res %>% filter(ID == participant_name)
+  iPulses <- which(!is.na(part_res$pulse_start) & !is.na(part_res$pulse_end))
+  pointing_pulses <- unlist(sapply(iPulses, function(x){seq(part_res$pulse_start[x], part_res$pulse_end[x], by = 1)}))
+  non_pointing_pulses <- setdiff(1:400, pointing_pulses)
+  res_pulses <- rbind(res_pulses, data.frame(poinitng = mean(rot_x[pointing_pulses]),
+                               mot = mean(rot_x[non_pointing_pulses])))
+}
+
+res_pulses

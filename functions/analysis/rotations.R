@@ -30,8 +30,8 @@ pulse_sum_rotation.participant <- function(participant){
 pulse_sum_rotation.session <- function(session){
   nav <- as.navr.session(session)
   log <- nav$data[!is.na(nav$data$pulse_id),]
-  x <- aggregate(log$rotation_x_diff, by = list(pulse = log$pulse_id), sum, na.rm = TRUE)
-  y <- aggregate(log$rotation_y_diff, by = list(pulse = log$pulse_id), sum, na.rm = TRUE)
+  x <- aggregate(abs(log$rotation_x_diff), by = list(pulse = log$pulse_id), sum, na.rm = TRUE)
+  y <- aggregate(abs(log$rotation_y_diff), by = list(pulse = log$pulse_id), sum, na.rm = TRUE)
   if(any(sapply(c(x[2], y[2]), length) != 400)){
     warning('Something went wrong')
     return(NULL)

@@ -50,6 +50,7 @@ remove(participant_names)
 hrf_names <- c("moving", "pointing", "still")
 hrf_folder <- file.path("..", "exports", "hrf")
 speed_folder <- file.path("..", "exports", "speeds")
+rotation_folder <- file.path("..", "exports", "rotations")
 hrfs <- list()
 for(name in good_participants){
   code <- fmri_code(name, df_preprocessing)
@@ -57,6 +58,10 @@ for(name in good_participants){
   #' Speeds have blank lines where there was too many missing values
   hrfs[[name]]$speed <- scan(f, what = numeric(), n = 400, sep = "\n", fill = NA_real_,
                              blank.lines.skip = FALSE, quiet = TRUE)
+  f <- file.path(rotation_folder, paste0(code, "_rotation.txt"))
+  rotation <- read.table(f, sep=",", header = TRUE)
+  hrfs[[name]]$rotation_x <- rotation$x
+  hrfs[[name]]$rotation_total <- rotation$total
   for(hrf in hrf_names){
     f <- file.path(hrf_folder, paste0(code, "_", hrf, ".txt"))
     hrfs[[name]][[hrf]]<- scan(f, n = 400, sep="\n", quiet = TRUE)
@@ -66,6 +71,7 @@ for(name in good_participants){
   }
 }
 ```
+
 ```{r calculate-correlations}
 correlations <- data.frame(stringsAsFactors = FALSE)
 for(name in good_participants){
@@ -81,6 +87,7 @@ for(name in good_participants){
 }
 
 ```
+
 ```{r averaging-correlations}
 cor_long <- correlations %>%
   pivot_longer(cols = -c(participant, event),names_to = "component")
@@ -101,17 +108,26 @@ Vpravo je pak možnost vybrat konkrétní komponentu a podívat se, jak reaguje 
 ### Summative visualisation
 
 ```{r}
-shared_cor_long_events <- cor_long %>%
-  SharedData$new()
+shared_cor_long_events <- cor_long %>% SharedData$new()
 
 widgets <- bscols(widths = c(12, 12, 12),
   filter_select("event", "Event", shared_cor_long_events, ~event, multiple = FALSE)
 )
 
+shared_cor_long_events_2 <- cor_long %>% SharedData$new()
+
+widgets2 <- bscols(widths = c(12, 12, 12),
+  filter_select("event", "Event", shared_cor_long_events_2, ~event, multiple = FALSE)
+)
 bscols(
   list(
     widgets,
-      plot_ly(data = shared_cor_long_events, x=~component, y=~value, color=~component) %>%
+    plot_ly(data = shared_cor_long_events, x=~component, y=~value, color=~component) %>%
+      add_trace(type="box", hoverinfo="y", showlegend=FALSE, 
+                boxmean=TRUE, boxpoints="all", jitter=1,
+                boxpoints=TRUE, hoveron="boxes"),
+    widgets2,
+    plot_ly(data = shared_cor_long_events_2, x=~component, y=~value, color=~component) %>%
         add_trace(type="box", hoverinfo="y", showlegend=FALSE, 
                   boxmean=TRUE, boxpoints="all", jitter=1,
                   boxpoints=TRUE, hoveron="boxes")
