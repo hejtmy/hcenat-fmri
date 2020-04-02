@@ -75,3 +75,12 @@ for(id in names(participants)){
 }
 
 ## Rotations -----
+for(id in names(participants)){
+  message('writing rotation for ', id)
+  rotations <- pulse_sum_rotation.session(participants[[id]][[1]])
+  rotations <- round(rotations, 4)
+  fmri_id <- df_preprocessing$fmri_code[df_preprocessing$ID == id]
+  filename <- file.path('exports', 'rotations', paste0(fmri_id, '_rotation.txt'))
+  rotations <- rotations[, c("x", "y", "total")]
+  write.table(rotations, filename, sep=",", row.names = FALSE)
+}
