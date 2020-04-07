@@ -20,6 +20,7 @@ res %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
   mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
+  filter(!is.na(time)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
   write.table(., file.path("exports", "pointing.csv"), row.names = FALSE, sep=",", quote = FALSE)
 

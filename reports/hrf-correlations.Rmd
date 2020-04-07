@@ -96,13 +96,15 @@ avg_cor <- cor_long %>% group_by(event, component) %>% summarize(average = mean(
 -------------------------------
 
 #### Overview
-Vlevo jsou boxploty za všechny komponenty. Je nutné nejdřív vybrat patřičný event, v defaultu je to vykreselno na půrměr pro všechny. Tečky jsou jednotlivé korelace pro daný event a komponentu pro jednoho participanta. Jedná se o Pearsonovy korelace. 
+Vlevo jsou boxploty za všechny komponenty. Je nutné nejdřív vybrat patřičný event, v defaultu je to vykreselno na průměr pro všechny. Tečky jsou jednotlivé korelace pro daný event a komponentu pro jednoho participanta. 
 
 Vpravo je pak možnost vybrat konkrétní komponentu a podívat se, jak reaguje v různých situacích. V základu je tam opět vykresleno vše, je nutné zvolit jednu konkrétní komponentu.
+
 
 ---------------------------
 
 #### Popis událostí
+Jedná se o Pearsonovy korelace. HRF řady bylo konvolvovány pouze pro eventy které pokrývaly min 75% pulsu.
 
 - speed: korelace komponenty s průměrnou rychlostí (průměr za každý puls (0-3s, 3-6s etc.))
 - rotation_x: korelace komponenty se sumou celkové rotace v ose x (rozhlížení do stran) (suma za každý puls)

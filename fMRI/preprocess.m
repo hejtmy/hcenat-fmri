@@ -34,7 +34,7 @@ pointingTrialData = filtervalidevents(pointingTrialData);
 %% Setting FMRI base
 TR = 3; % TR = 3 sec
 SESSION_LENGTH = 400;
-MIN_PULSE_RATIO = 0.9; %minimum ratio of a pulse happening in event
+MIN_PULSE_RATIO = 0.75; %minimum ratio of a pulse happening in event
 
 %% Per subject
 for i = 1:numel(subjects)
