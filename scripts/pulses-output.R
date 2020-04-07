@@ -15,15 +15,32 @@ res <- add_fmri_code(res, "participant", df_preprocessing)
 
 ## Pointing ------
 
-out_pointing <- res %>%
+res %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
   mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
-  select(-c(correct_angle, chosen_angle, time_end))
+  select(-c(correct_angle, chosen_angle, time_end)) %>%
+  write.table(., file.path("exports", "pointing.csv"), row.names = FALSE, sep=",", quote = FALSE)
 
-write.table(out_pointing, file.path("exports", "pointing.csv"), row.names = FALSE, sep=",", quote = FALSE)
+res %>%
+  filter(type =="learn") %>%
+  select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
+  rename(time = point_start_fmri, time_end = point_end_fmri) %>%
+  mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
+  mutate(time = round(time, 4), duration = round(duration, 4)) %>%
+  select(-c(correct_angle, chosen_angle, time_end)) %>%
+  write.table(., file.path("exports", "pointing-learn.csv"), row.names = FALSE, sep=",", quote = FALSE)
 
+res %>%
+  filter(type=="trial") %>%
+  select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
+  rename(time = point_start_fmri, time_end = point_end_fmri) %>%
+  mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
+  mutate(time = round(time, 4), duration = round(duration, 4)) %>%
+  select(-c(correct_angle, chosen_angle, time_end)) %>%
+  write.table(., file.path("exports", "pointing-trial.csv"), row.names = FALSE, sep=",", quote = FALSE)
+  
 ## Onsets -----
 df_onset_stop <- onset_stop_table.participants(participants, speed_threshold = 10, min_duration = 3, 
                                                still_threshold = 1, still_duration = 1, pause_duration = 0.5)
