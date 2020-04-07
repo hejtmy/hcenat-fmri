@@ -9,6 +9,7 @@ knit: (function(inputFile, encoding) {
                         output_dir = "../docs", 'analysis.html'))})
 output: 
   flexdashboard::flex_dashboard:
+    vertical_layout: scroll
     orientation: rows
 ---
 ```{r setup, message=FALSE, warning=FALSE, results='hide', echo=FALSE}
@@ -18,7 +19,7 @@ library(crosstalk)
 library(dplyr)
 library(knitr)
 library(tidyr)
-sapply(list.files("../functions", full.names = T, recursive = T), source)
+sapply(list.files("../functions", full.names = TRUE, recursive = TRUE), source)
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 img_path <- "../images/megamap5.png"
 ```
@@ -47,7 +48,7 @@ for(name in participant_names){
 }
 remove(participant_names)
 
-hrf_names <- c("moving", "pointing", "still")
+hrf_names <- c("moving", "still", "pointing")
 hrf_folder <- file.path("..", "exports", "hrf")
 speed_folder <- file.path("..", "exports", "speeds")
 rotation_folder <- file.path("..", "exports", "rotations")
@@ -85,45 +86,54 @@ for(name in good_participants){
     correlations <- rbind(correlations, as.data.frame(res))
   }
 }
-
 ```
 
 ```{r averaging-correlations}
-cor_long <- correlations %>%
-  pivot_longer(cols = -c(participant, event),names_to = "component")
-avg_cor <- cor_long %>%
-  group_by(event, component) %>%
-  summarize(average = mean(value))
+cor_long <- correlations %>% pivot_longer(cols = -c(participant, event), names_to = "component")
+avg_cor <- cor_long %>% group_by(event, component) %>% summarize(average = mean(value))
 ```
 
--------------------------------------------------
+-------------------------------
 
 #### Overview
 Vlevo jsou boxploty za všechny komponenty. Je nutné nejdřív vybrat patřičný event, v defaultu je to vykreselno na půrměr pro všechny. Tečky jsou jednotlivé korelace pro daný event a komponentu pro jednoho participanta. Jedná se o Pearsonovy korelace. 
 
 Vpravo je pak možnost vybrat konkrétní komponentu a podívat se, jak reaguje v různých situacích. V základu je tam opět vykresleno vše, je nutné zvolit jednu konkrétní komponentu.
 
------------------------------------------------
+---------------------------
 
-### Summative visualisation
+#### Popis událostí
+
+- speed: korelace komponenty s průměrnou rychlostí (průměr za každý puls (0-3s, 3-6s etc.))
+- rotation_x: korelace komponenty se sumou celkové rotace v ose x (rozhlížení do stran) (suma za každý puls)
+- rotation_total:korelace komponenty se sumou celkové rotace v ose x i Y (suma za každý puls) Celkově lze asi považovat za motorickou aktivitu, člověk kroutí joystickem. Při chůzi jen "drží" tlačítko
+- moving: Korelace průběhu komponeny s hrf konvolucí událostí průběhu pohybu (definováno jako čas začátku a trvání rychlosti NAD určitou úroveň předcházeno minimálně 1s dlouhou nepohybovou pauzou - min délka události je 3s, participant se může během události pohybu zastavit až na 0.5s a není počítáno jako přerušení)
+- still: Korelace průběhu komponenty s hrf konvolucí event (definováno jako čas začátku a trvání rychlosti POD určitou úroveň - min délka stání je 3s)
+- pointing: Korelace průběhu komponenty s hrf konvolucí událostí ukazování (definováno jako čas začátku a trvání ukazování)
 
 ```{r}
 shared_cor_long_events <- cor_long %>% SharedData$new()
+shared_cor_long_events_2 <- cor_long %>% SharedData$new()
+shared_cor_long <- cor_long %>% SharedData$new()
+```
 
+-----------------------------------------------
+### Summative visualisation
+
+```{r}
 widgets <- bscols(widths = c(12, 12, 12),
   filter_select("event", "Event", shared_cor_long_events, ~event, multiple = FALSE)
 )
 
-shared_cor_long_events_2 <- cor_long %>% SharedData$new()
-
 widgets2 <- bscols(widths = c(12, 12, 12),
   filter_select("event", "Event", shared_cor_long_events_2, ~event, multiple = FALSE)
 )
+
 bscols(
   list(
     widgets,
     plot_ly(data = shared_cor_long_events, x=~component, y=~value, color=~component) %>%
-      add_trace(type="box", hoverinfo="y", showlegend=FALSE, 
+      add_trace(type="box", hoverinfo="y", showlegend=FALSE,
                 boxmean=TRUE, boxpoints="all", jitter=1,
                 boxpoints=TRUE, hoveron="boxes"),
     widgets2,
@@ -133,13 +143,12 @@ bscols(
                   boxpoints=TRUE, hoveron="boxes")
   )
 )
+
 ```
 
 ### Separate fMRI conponent
 
-```{r}
-shared_cor_long <- cor_long %>%
-  SharedData$new()
+```{r fig.height=15}
 
 widgets <- bscols(widths = c(12, 12, 12),
   filter_select("component", "Component", shared_cor_long, ~component, multiple = FALSE)
