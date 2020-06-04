@@ -29,3 +29,4 @@ There are some requirements for the matlab code.
 The analyses on the timeseries can be run in either matlab or R. After simulating and convolving the fmri hrf, there is no other reason to use matlab, as the matrices are not really that big. The procedure then is just a computing timeseries correlations.
 
 The matlab analyses are in the `fmri/analysis` - that saves the final correlation matrices in the exports
+The R analyses used for exporting the online exploration tool are in `reports/hrf-correlations.Rmd`

@@ -17,9 +17,10 @@ nav <- navr::remove_unreal_speeds(nav, cutoff=30, type="value")
 ```
 
 ```{r}
-onsets_stops <- onset_stop_table.session(participant, speed_threshold = 5, min_duration = 3, 
-                                         still_threshold = 1, still_duration = 2, pause_duration = 0.3)
-onsets <- onsets_stops  %>% filter(movement_type == "moving")
+onsets_stops <- onset_stop_table.session(participant, speed_threshold = 5,
+                                         min_duration = 3, still_threshold = 1,
+                                         still_duration = 2, pause_duration = 0.3)
+onsets <- onsets_stops %>% filter(movement_type == "moving")
 stops <- onsets_stops %>% filter(movement_type == "still")
 ```
 
@@ -56,7 +57,6 @@ navr::plot_speed(obj = nav) +
 
 ```{r}
 plt <- ggplot()
-#♦for(i in 1:length(stops$time)){
 for(i in 1:5){
   nav_still <- filter_times(nav, times = c(stops$time[i], stops$time[i] + stops$duration[i]), zero_based= TRUE)
   plt <- plt + geom_navr_path(nav_still, add_points = TRUE)

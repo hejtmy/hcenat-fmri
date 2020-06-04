@@ -28,5 +28,5 @@ quest_pointing_accuracy(quest, participant$player_log)
 pointing_results.session(participant)
 
 ## fmri analysis ----
-movement_pulses <- onset_stop_table.session(participant, speed_threshold = 10, min_duration = 3, 
+movement_pulses <- onset_stop_table.session(participant, speed_threshold = 10, min_duration = 3,
                                             still_threshold = 1, still_duration = 1, pause_duration = 0.3)
