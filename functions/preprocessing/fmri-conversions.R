@@ -16,13 +16,10 @@ rename_mri_participants <- function(components, df_participants){
 
 #' Returns mfpri code for a particular participant
 #'
-#' @param code 
-#' @param df_preprocessing 
+#' @param code Unity code to decode
+#' @param df_preprocessing data.frame loaded with load_preprocessing_status
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @examples fmri_code("HCE_E_10", df_preprocessing)
 fmri_code <- function(code, df_preprocessing){
   line <- df_preprocessing[df_preprocessing$ID == code,]
   if(nrow(line) != 1){
@@ -33,7 +30,7 @@ fmri_code <- function(code, df_preprocessing){
 }
 
 
-#' Flips fmri data so that each participant has a single data frame with all components as columns
+#' Changes the fmri data so that each participant has a single data frame with all components as columns
 #'
 #' @param components 
 #'
@@ -55,11 +52,13 @@ restructure_mri <- function(components){
   return(df_fmri)
 }
 
+
 #' Adds fmri_code column to given table based on data in the recoding table
 #'
 #' @param df table to which the fmri_column should be added
 #' @param participant_column name of the column with participant id 
-#' @param recoding_table needs to have columns "ID" and "fmri_code". Loaded from the google sheets with load_participant_preprocessing_status()
+#' @param recoding_table needs to have columns "ID" and "fmri_code". 
+#' Loaded from the google sheets with load_participant_preprocessing_status()
 #'
 #' @return
 #' @export
@@ -70,4 +69,24 @@ add_fmri_code <- function(df, participant_column, recoding_table){
     select(ID, fmri_code) %>%
     right_join(df, by = c("ID"="participant"))
   return(out)
+}
+
+
+#' Returns Ids of participants who finished session i
+#'
+#' @param df_preprocessing df_preprocessing table as loaded by load_preprocessing_table
+#' @param return_code can be c("fmri", "unity"). Reutnrs appropriate code
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_good_participant_ids <- function(df_preprocessing, return_code = "fmri"){
+  i_good_participants <- df_preprocessing$session1_ok
+  if(return_code == "fmri"){
+    return(df_preprocessing$fmri_code[i_good_participants])
+  }
+  if(return_code == "unity"){
+    return(df_preprocessing$ID[i_good_participants])
+  }
 }
