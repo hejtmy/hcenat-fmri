@@ -66,3 +66,26 @@ avg_cor <- cor_long %>% group_by(event, component) %>% summarize(average = mean(
 
 ## Regression analysis -----
 
+### For a single participant
+
+name <- good_participants[1]
+participant_series <- as.data.frame(hrfs[[name]])
+
+comps <- sapply(components, function(x){x[[name]]}, USE.NAMES = TRUE, simplify = FALSE)
+regressions_moving_learn_trial <- list()
+df_regressions_moving_learn_trial <- data.frame()
+for(component_name in names(comps)){
+  regressions_moving_learn_trial[[component_name]] <- lm(comps[[component_name]] ~ participant_series$moving.learn + participant_series$moving.trial)
+  out <- broom::tidy(regressions_moving_learn_trial[[component_name]])
+  
+  out <- out %>%
+    select(term, estimate, p.value) %>%
+    filter(term != "(Intercept)") %>%
+    mutate(term = gsub("participant_series\\$moving\\.", "", .$term),
+           component = component_name) %>%
+    pivot_wider(id_cols = c(component), names_from = term, 
+                values_from = c(estimate, p.value), names_sep = "_")
+  df_regressions_moving_learn_trial <- rbind(df_regressions_moving_learn_trial, out)
+}
+
+df_regressions_moving_learn_trial
