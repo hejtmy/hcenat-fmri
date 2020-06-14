@@ -2,7 +2,9 @@ library(navr)
 library(plotly)
 library(dplyr)
 library(knitr)
+library(car)
 library(tidyr)
+
 sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 img_path <- "images/megamap5.png"
@@ -10,7 +12,7 @@ img_path <- "images/megamap5.png"
 options(gargle_oauth_email = "hejtmy@gmail.com")
 df_preprocessing <- load_participant_preprocessing_status()
 
-# Load components
+# Load components -----
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
 names_file <- file.path(data_dir, "../MRI-data-tomecek/subs_20190830_1422.txt")
 components <- load_mri(folder, names_file)
@@ -18,16 +20,19 @@ components <- rename_mri_participants(components, df_preprocessing)
 fmri <- restructure_mri(components)
 
 component_names <- names(components)
-good_participants <- get_good_participants(df_preprocessing, "unity")
+good_participants <- get_good_participant_ids(df_preprocessing, "unity")
 
-#only selects those participants who have components
+# only selects those participants who have components
 good_participants <- intersect(names(components[[1]]), good_participants)
 
-hrf_names <- c("moving", "still", "pointing")
+hrf_names <- c("moving", "moving-learn", "moving-trial",
+               "still", "still-learn", "still-trial",
+               "pointing")
 hrf_folder <- file.path("exports", "hrf")
 speed_folder <- file.path("exports", "speeds")
 rotation_folder <- file.path("exports", "rotations")
 
+## Loading hrfs ------
 hrfs <- list()
 for(name in good_participants){
   code <- fmri_code(name, df_preprocessing)
@@ -49,6 +54,7 @@ for(name in good_participants){
   }
 }
 
+## Correlations ------
 correlations <- data.frame(stringsAsFactors = FALSE)
 for(name in good_participants){
   participant_series <- hrfs[[name]]
@@ -70,12 +76,65 @@ avg_cor <- cor_long %>% group_by(event, component) %>% summarize(average = mean(
 
 name <- good_participants[1]
 participant_series <- as.data.frame(hrfs[[name]])
+participant_series_long <- as.data.frame(hrfs[[name]]) %>%
+  mutate(pulse_id = 1:400) %>%
+  pivot_longer(cols = -c(pulse_id), names_to = "hrf") %>%
+  arrange(hrf, pulse_id)
 
-comps <- sapply(components, function(x){x[[name]]}, USE.NAMES = TRUE, simplify = FALSE)
+comps <- sapply(components, function(x){x[[name]]},
+                USE.NAMES = TRUE, simplify = FALSE)
+
+## Single testing with moving
+component_name <- names(comps)[1]
+df_glm <- participant_series_long %>%
+  filter(grepl("moving", hrf)) %>%
+  mutate(hrf = factor(hrf), 
+         component = rep(comps[[component_name]], 3))
+
+model.matrix.default( ~ hrf, df_glm, contrasts.arg =
+                        list(hrf = contr.treatment(n = 3, base = 1)))
+
+model <- glm(component ~ value*hrf, data = df_glm)
+model <- glm(comps[[component_name]] ~ 
+               participant_series$moving +
+               participant_series$moving.learn +
+               participant_series$moving.trial +
+               participant_series$moving:participant_series$moving.trial +
+               participant_series$moving:participant_series$moving.learn)
+model <- glm(component ~ value*hrf, data = df_glm, # Same as normal interaction model
+             contrasts = list(hrf = contr.treatment(n = 3, base = 1)))
+summary(model)
+Anova(model,type = "II")
+
+
+## Single testing without moving
+component_name <- names(comps)[1]
+df_glm <- participant_series_long %>%
+  filter(grepl("moving.", hrf)) %>%
+  mutate(hrf = factor(hrf), 
+         component = rep(comps[[component_name]], 2))
+
+model <- glm(comps[[component_name]] ~ 
+               participant_series$moving.learn +
+               participant_series$moving.trial)
+summary(model)
+Anova(model,type = "II")
+
+df_glm_2 <- data.frame(bold = comps[[component_name]], 
+                       moving = participant_series$moving,
+                       moving_learn = participant_series$moving.learn,
+                       moving_trial = participant_series$moving.trial)
+model <- glm(bold ~ moving_learn + moving_trial,
+             data = df_glm_2, contrasts = list(hrf=c(0,1,-1)))
+summary(model)
+
+## All components
 regressions_moving_learn_trial <- list()
 df_regressions_moving_learn_trial <- data.frame()
+
 for(component_name in names(comps)){
-  regressions_moving_learn_trial[[component_name]] <- lm(comps[[component_name]] ~ participant_series$moving.learn + participant_series$moving.trial)
+  regressions_moving_learn_trial[[component_name]] <- 
+    glm(comps[[component_name]] ~ participant_series$moving.learn + participant_series$moving.trial)
   out <- broom::tidy(regressions_moving_learn_trial[[component_name]])
   out <- out %>%
     select(term, estimate, p.value) %>%
@@ -101,12 +160,12 @@ summary(lm(filt_dmn_52 ~ moving.learn + moving.trial, data=all_data))
 
 
 all_data %>%
-  filter(participant %in% good_participants[1:10]) %>%
-  ggplot(aes(filt_cen_16, moving)) + 
+  #filter(participant %in% good_participants[1:10]) %>%
+  ggplot(aes(moving, filt_mot_33)) + 
     geom_point() + geom_smooth(method="lm") +
-    facet_wrap(~participant)
+    facet_wrap(~participant) + ylim(-2,2)
 
-l <- lmerTest::lmer(filt_dmn_52 ~ moving.learn + moving.trial + (moving|participant), data=all_data)
+l <- lmerTest::lmer(filt_dmn_2 ~ moving.learn + moving.trial + (moving|participant), data=all_data)
 summary(l)
 
 
