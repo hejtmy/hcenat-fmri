@@ -46,9 +46,16 @@ quest_pointing_accuracy(quest, participant$HCE_K_23[[1]]$player_log)
 
 ## Onsets
 df <- onset_stop_table.session(participant[[1]], 3, 0.2, 5)
-df %>% filter(movement_type == "moving" & !is.na(pulse_id)) %>% ggplot(aes(position_x, position_y, color=factor(pulse_id))) + geom_path() + theme(legend.position = "none")
-df %>% filter(movement_type == "still" & !is.na(pulse_id)) %>% unique() %>% ggplot(aes(position_x, position_y, color=factor(pulse_id))) + 
-  geom_jitter(width = 20, height = 20) + theme(legend.position = "none")
+df %>% 
+  filter(movement_type == "moving" & !is.na(pulse_id)) %>% 
+  ggplot(aes(position_x, position_y, color=factor(pulse_id))) + 
+    geom_path() + 
+    theme(legend.position = "none")
+df %>% 
+  filter(movement_type == "still" & !is.na(pulse_id)) %>% unique() %>% 
+  ggplot(aes(position_x, position_y, color=factor(pulse_id))) + 
+    geom_jitter(width = 20, height = 20) + 
+    theme(legend.position = "none")
 
 ## investigation of pulses ----
 # difference between 1st and last

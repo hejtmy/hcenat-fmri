@@ -22,6 +22,11 @@ speed_folder <- file.path("exports", "speeds")
 rotation_folder <- file.path("exports", "rotations")
 
 ## Loading hrfs ------
+
+codes <- fmri_code(good_participants, df_preprocessing)
+
+#hrfs <- load_hrfs("exports", hrf_names, codes)
+#hrfs <- rename_hrfs(hrfs, df_preprocessing, to="unity")
 hrfs <- list()
 for(name in good_participants){
   code <- fmri_code(name, df_preprocessing)
@@ -42,3 +47,4 @@ for(name in good_participants){
     }
   }
 }
+

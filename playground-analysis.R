@@ -60,11 +60,11 @@ model <- glm(comps[[component_name]] ~
                participant_series$moving.learn:participant_series$moving.trial)
 summary(model)
 levels(df_glm$hrf)
-model <- glm(bold ~ value:hrf, data=df_glm, contrasts = list(hrf=c(-1,1))) #♣contrats do nothing
+model <- glm(bold ~ value:hrf, data=df_glm, contrasts = list(hrf=c(-1,1))) # contrats do nothing
 summary(model)
 Anova(model,type = "II")
 
-### GLHT CONTRATS
+### GLHT CONTRATS -----
 # intercept, value:hrf1, value:hrf2
 contrast <- matrix(c(0, -1, 1), 1)
 model <- glm(comps[[component_name]] ~ 
@@ -80,6 +80,14 @@ cont <- glht(model, linfct = mcp(hrf = "Tukey"))
 summary(cont)
 
 ### Mixed model
+df_mixed <- restrucutre_mri(components) %>%
+  df_mixed <- as.data.frame(hrfs[[good_participants[1]]]) %>%
+  rbind(as.data.frame(hrfs[[good_participants[2]]])) %>%
+  mutate(pulse_id = rep(1:400, 2), participant = c(rep(1, 400), rep(2, 400))) %>%
+  pivot_longer(cols = -c(pulse_id, participant), names_to = "hrf") %>%
+  arrange(hrf, participant, pulse_id)
+
+lmer4::lmer(bold ~ value:hrf + (1|participant), data = df_glm)
 
 ### All component -----
 regressions_moving_learn_trial <- list()
@@ -94,7 +102,7 @@ for(component_name in names(comps)){
     filter(term != "(Intercept)") %>%
     mutate(term = gsub("participant_series\\$moving\\.", "", .$term),
            component = component_name) %>%
-    pivot_wider(id_cols = c(component), names_from = term, 
+    pivot_wider(id_cols = c(component), names_from = term,
                 values_from = c(estimate, p.value), names_sep = "_")
   df_regressions_moving_learn_trial <- rbind(df_regressions_moving_learn_trial, out)
 }

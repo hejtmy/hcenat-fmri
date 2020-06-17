@@ -14,19 +14,19 @@ rename_mri_participants <- function(components, df_participants){
 }
 
 
-#' Returns mfpri code for a particular participant
+#' Returns fmri code for a particular participant
 #'
 #' @param code Unity code to decode
 #' @param df_preprocessing data.frame loaded with load_preprocessing_status
 #'
 #' @examples fmri_code("HCE_E_10", df_preprocessing)
-fmri_code <- function(code, df_preprocessing){
-  line <- df_preprocessing[df_preprocessing$ID == code,]
-  if(nrow(line) != 1){
+fmri_code <- function(codes, df_preprocessing){
+  lines <- df_preprocessing[df_preprocessing$ID %in% codes,]
+  if(nrow(lines) <  0){
     warning("bad code passed")
     return(NULL)
   }
-  return(line$fmri_code)
+  return(lines$fmri_code)
 }
 
 
