@@ -9,71 +9,11 @@ sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 img_path <- "images/megamap5.png"
 
-options(gargle_oauth_email = "hejtmy@gmail.com")
-df_preprocessing <- load_participant_preprocessing_status()
+source("scripts/load-data.R")
 
-# Load components -----
-folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
-names_file <- file.path(data_dir, "../MRI-data-tomecek/subs_20190830_1422.txt")
-components <- load_mri(folder, names_file)
-components <- rename_mri_participants(components, df_preprocessing)
-fmri <- restructure_mri(components)
+## Regression analysis 
 
-component_names <- names(components)
-good_participants <- get_good_participant_ids(df_preprocessing, "unity")
-
-# only selects those participants who have components
-good_participants <- intersect(names(components[[1]]), good_participants)
-
-hrf_names <- c("moving", "moving-learn", "moving-trial",
-               "still", "still-learn", "still-trial",
-               "pointing")
-hrf_folder <- file.path("exports", "hrf")
-speed_folder <- file.path("exports", "speeds")
-rotation_folder <- file.path("exports", "rotations")
-
-## Loading hrfs ------
-hrfs <- list()
-for(name in good_participants){
-  code <- fmri_code(name, df_preprocessing)
-  f <- file.path(speed_folder, paste0(code, "_speed.txt"))
-  #' Speeds have blank lines where there was too many missing values
-  hrfs[[name]]$speed <- scan(f, what = numeric(), n = 400, sep = "\n", 
-                             fill = NA_real_, blank.lines.skip = FALSE,
-                             quiet = TRUE)
-  f <- file.path(rotation_folder, paste0(code, "_rotation.txt"))
-  rotation <- read.table(f, sep=",", header = TRUE)
-  hrfs[[name]]$rotation_x <- rotation$x
-  hrfs[[name]]$rotation_total <- rotation$total
-  for(hrf in hrf_names){
-    f <- file.path(hrf_folder, paste0(code, "_", hrf, ".txt"))
-    hrfs[[name]][[hrf]]<- scan(f, n = 400, sep="\n", quiet = TRUE)
-    if(length(hrfs[[name]][[hrf]]) != 400){
-      warning(name, " ", hrf, " has length ", length(hrfs[[hrf]][[name]]))
-    }
-  }
-}
-
-## Correlations ------
-correlations <- data.frame(stringsAsFactors = FALSE)
-for(name in good_participants){
-  participant_series <- hrfs[[name]]
-  comps <- sapply(components, function(x){x[[name]]}, USE.NAMES = TRUE, simplify = FALSE)
-  for(series_name in names(participant_series)){
-    series <- participant_series[[series_name]]
-    res <- sapply(comps, function(x){cor(x, series, use = "complete.obs")}, simplify = FALSE)
-    res$participant <- name
-    res$event <- series_name
-    correlations <- rbind(correlations, as.data.frame(res))
-  }
-}
-cor_long <- correlations %>% pivot_longer(cols = -c(participant, event), names_to = "component")
-avg_cor <- cor_long %>% group_by(event, component) %>% summarize(average = mean(value))
-
-## Regression analysis -----
-
-### For a single participant
-
+### For a single participant ----
 name <- good_participants[1]
 participant_series <- as.data.frame(hrfs[[name]])
 participant_series_long <- as.data.frame(hrfs[[name]]) %>%
@@ -84,7 +24,7 @@ participant_series_long <- as.data.frame(hrfs[[name]]) %>%
 comps <- sapply(components, function(x){x[[name]]},
                 USE.NAMES = TRUE, simplify = FALSE)
 
-## Single testing with moving
+## Single testing with moving 
 component_name <- names(comps)[1]
 df_glm <- participant_series_long %>%
   filter(grepl("moving", hrf)) %>%
@@ -107,28 +47,41 @@ summary(model)
 Anova(model,type = "II")
 
 
-## Single testing without moving
+## Single testing without moving ----
+library(multcomp)
 component_name <- names(comps)[1]
 df_glm <- participant_series_long %>%
   filter(grepl("moving.", hrf)) %>%
   mutate(hrf = factor(hrf), 
-         component = rep(comps[[component_name]], 2))
+         bold = rep(comps[[component_name]], 2),
+         participant = "NEO")
 
 model <- glm(comps[[component_name]] ~ 
-               participant_series$moving.learn +
-               participant_series$moving.trial)
+               participant_series$moving.learn:participant_series$moving.trial)
+summary(model)
+levels(df_glm$hrf)
+model <- glm(bold ~ value:hrf, data=df_glm, contrasts = list(hrf=c(-1,1))) #♣contrats do nothing
 summary(model)
 Anova(model,type = "II")
 
-df_glm_2 <- data.frame(bold = comps[[component_name]], 
-                       moving = participant_series$moving,
-                       moving_learn = participant_series$moving.learn,
-                       moving_trial = participant_series$moving.trial)
-model <- glm(bold ~ moving_learn + moving_trial,
-             data = df_glm_2, contrasts = list(hrf=c(0,1,-1)))
+### GLHT CONTRATS
+# intercept, value:hrf1, value:hrf2
+contrast <- matrix(c(0, -1, 1), 1)
+model <- glm(comps[[component_name]] ~ 
+               participant_series$moving.learn + participant_series$moving.trial)
 summary(model)
+# taken from https://genomicsclass.github.io/book/pages/interactions_and_contrasts.html
+inter <- glht(model, linfct=contrast)
+summary(inter)
 
-## All components
+model <- glm(bold ~ value:hrf, data=df_glm)
+summary(model)
+cont <- glht(model, linfct = mcp(hrf = "Tukey"))
+summary(cont)
+
+### Mixed model
+
+### All component -----
 regressions_moving_learn_trial <- list()
 df_regressions_moving_learn_trial <- data.frame()
 
@@ -146,7 +99,7 @@ for(component_name in names(comps)){
   df_regressions_moving_learn_trial <- rbind(df_regressions_moving_learn_trial, out)
 }
 
-### All participants ------
+## All participants ------
 df_hrfs <- data.frame()
 for(name in good_participants){
   out <- as.data.frame(hrfs[[name]])
