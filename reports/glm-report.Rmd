@@ -1,0 +1,54 @@
+---
+title: "glm-report"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "26/06/2020"
+output: html_document
+---
+
+```{r}
+library(navr)
+library(plotly)
+library(dplyr)
+library(knitr)
+library(car)
+library(tidyr)
+
+sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
+data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+img_path <- "images/megamap5.png"
+
+source("scripts/load-data.R")
+
+df_hrfs <- restructure_hrfs(hrfs)
+df_mri <- restructure_mri(components)
+df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
+
+bonferroni_p <- 0.05/length(component_names)
+```
+
+
+```{r}
+df_res <- data.frame()
+for(participant in unique(df_all$participant)){
+  for(component in component_names){
+    formula <- as.formula(paste0(component, "~moving"))
+    model <- glm(formula, data = df_all[df_all$participant == participant,])
+    coefs <- as.list(summary(model)$coefficients[2,])
+    coefs$participant <- participant
+    coefs$component <- component
+    df_res <- rbind(df_res, as.data.frame(coefs))
+  }
+}
+
+colnames(df_res) <- c("beta", "std.err", "t.value", "p.value", "participant", "component")
+
+bonferroni_p <- 0.05/length(component_names)
+bonferroni_p <- 0.05
+df_res %>%
+  group_by(component) %>%
+  summarise(pass = sum(p.value < bonferroni_p)/n(), 
+            range = paste0(round(range(beta), 2), collapse = "-"),
+            mean = mean(beta), median = median(beta)) %>%
+  kable(digits = 3)
+
+```

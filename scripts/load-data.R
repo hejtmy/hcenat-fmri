@@ -48,3 +48,13 @@ for(name in good_participants){
   }
 }
 
+restructure_hrfs <- function(hrfs){
+  res <- data.frame()
+  for(participant in names(hrfs)){
+    temp <- as.data.frame(hrfs[[participant]])
+    temp$participant <- participant
+    temp$pulse_id <- 1:400
+    res <- rbind(res, temp)
+  }
+  return(res)
+}

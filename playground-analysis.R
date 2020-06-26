@@ -24,7 +24,11 @@ participant_series_long <- as.data.frame(hrfs[[name]]) %>%
 comps <- sapply(components, function(x){x[[name]]},
                 USE.NAMES = TRUE, simplify = FALSE)
 
-## Single testing with moving 
+df_hrfs <- restructure_hrfs(hrfs)
+df_mri <- restructure_mri(components)
+df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
+
+## Single testing with moving
 component_name <- names(comps)[1]
 df_glm <- participant_series_long %>%
   filter(grepl("moving", hrf)) %>%
@@ -46,6 +50,32 @@ model <- glm(component ~ value*hrf, data = df_glm, # Same as normal interaction 
 summary(model)
 Anova(model,type = "II")
 
+## Select those components which do something in the 
+
+df_res <- data.frame()
+for(participant in unique(df_all$participant)){
+  for(component in component_names){
+    formula <- as.formula(paste0(component, "~moving"))
+    model <- glm(formula, data = df_all[df_all$participant == participant,])
+    coefs <- as.list(summary(model)$coefficients[2,])
+    coefs$participant <- participant
+    coefs$component <- component
+    df_res <- rbind(df_res, as.data.frame(coefs))
+  }
+}
+
+colnames(df_res) <- c("beta", "std.err", "t.value", "p.value", "participant", "component")
+head(df_res)
+
+df_res %>%
+  filter(p.value < 0.05) %>%
+  ggplot(aes(p.value)) + geom_histogram() + facet_wrap(~component)
+
+bonferroni_p <- 0.05/length(component_names)
+df_res %>%
+  group_by(component) %>%
+  count(pass = p.value < bonferroni_p) %>%
+  pivot_wider(names_from = pass, values_from = n)
 
 ## Single testing without moving ----
 library(multcomp)
@@ -71,7 +101,7 @@ model <- glm(comps[[component_name]] ~
                participant_series$moving.learn + participant_series$moving.trial)
 summary(model)
 # taken from https://genomicsclass.github.io/book/pages/interactions_and_contrasts.html
-inter <- glht(model, linfct=contrast)
+inter <- multcomp::glht(model, linfct=contrast)
 summary(inter)
 
 model <- glm(bold ~ value:hrf, data=df_glm)
@@ -79,15 +109,16 @@ summary(model)
 cont <- glht(model, linfct = mcp(hrf = "Tukey"))
 summary(cont)
 
-### Mixed model
-df_mixed <- restrucutre_mri(components) %>%
-  df_mixed <- as.data.frame(hrfs[[good_participants[1]]]) %>%
-  rbind(as.data.frame(hrfs[[good_participants[2]]])) %>%
-  mutate(pulse_id = rep(1:400, 2), participant = c(rep(1, 400), rep(2, 400))) %>%
-  pivot_longer(cols = -c(pulse_id, participant), names_to = "hrf") %>%
+### Mixed model -----
+df_mixed <- df_all %>%
+  select(pulse_id, participant, bold=filt_cen_11, moving.learn, moving.trial) %>%
+  pivot_longer(cols = -c(pulse_id, bold, participant), names_to = "hrf") %>%
   arrange(hrf, participant, pulse_id)
 
-lmer4::lmer(bold ~ value:hrf + (1|participant), data = df_glm)
+mixed_model <- lmerTest::lmer(bold ~ value:hrf + (1|participant), data = df_mixed)
+mixed_model <- lmerTest::lmer(bold ~ value:hrf + (1|participant), data = df_mixed,
+                              contrasts = list(hrf=contr.helmert(2)))
+summary(mixed_model)
 
 ### All component -----
 regressions_moving_learn_trial <- list()
