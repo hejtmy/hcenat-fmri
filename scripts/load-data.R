@@ -1,7 +1,11 @@
 options(gargle_oauth_email = "hejtmy@gmail.com")
+
+# Loading demograhics ---------
+message("Loading demographics")
 df_preprocessing <- load_participant_preprocessing_status()
 
 # Load components -----
+message("Loading components")
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
 names_file <- file.path(data_dir, "../MRI-data-tomecek/subs_20190830_1422.txt")
 components <- load_mri(folder, names_file)
@@ -22,7 +26,7 @@ speed_folder <- file.path("exports", "speeds")
 rotation_folder <- file.path("exports", "rotations")
 
 ## Loading hrfs ------
-
+message("loading hrfs")
 codes <- fmri_code(good_participants, df_preprocessing)
 
 #hrfs <- load_hrfs("exports", hrf_names, codes)
@@ -58,3 +62,11 @@ restructure_hrfs <- function(hrfs){
   }
   return(res)
 }
+
+df_hrfs <- restructure_hrfs(hrfs)
+df_mri <- restructure_mri(components)
+df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
+
+rm(res, temp, code, codes, component_names, folder, good_participants, hfr_folder,
+   hrf, hrf_folder, name, names_file, f, hrf_names, speed_folder, rotation_folder,
+   rotation, )

@@ -1,9 +1,10 @@
+library(car)
 library(navr)
 library(plotly)
 library(dplyr)
 library(knitr)
-library(car)
 library(tidyr)
+library(nlme)
 
 sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
@@ -12,27 +13,22 @@ img_path <- "images/megamap5.png"
 source("scripts/load-data.R")
 
 ## Regression analysis 
+name <- good_participants[1]
+comps <- sapply(components, function(x){x[[name]]},
+                USE.NAMES = TRUE, simplify = FALSE)
+component_name <- names(comps)[1]
 
 ### For a single participant ----
-name <- good_participants[1]
 participant_series <- as.data.frame(hrfs[[name]])
 participant_series_long <- as.data.frame(hrfs[[name]]) %>%
   mutate(pulse_id = 1:400) %>%
   pivot_longer(cols = -c(pulse_id), names_to = "hrf") %>%
   arrange(hrf, pulse_id)
 
-comps <- sapply(components, function(x){x[[name]]},
-                USE.NAMES = TRUE, simplify = FALSE)
-
-df_hrfs <- restructure_hrfs(hrfs)
-df_mri <- restructure_mri(components)
-df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
-
 ## Single testing with moving
-component_name <- names(comps)[1]
 df_glm <- participant_series_long %>%
   filter(grepl("moving", hrf)) %>%
-  mutate(hrf = factor(hrf), 
+  mutate(hrf = factor(hrf),
          component = rep(comps[[component_name]], 3))
 
 model.matrix.default( ~ hrf, df_glm, contrasts.arg =
@@ -45,13 +41,23 @@ model <- glm(comps[[component_name]] ~
                participant_series$moving.trial +
                participant_series$moving:participant_series$moving.trial +
                participant_series$moving:participant_series$moving.learn)
+
 model <- glm(component ~ value*hrf, data = df_glm, # Same as normal interaction model
              contrasts = list(hrf = contr.treatment(n = 3, base = 1)))
 summary(model)
 Anova(model,type = "II")
 
+### Autocorrelation ------
+library(nlme)
+df_gls <- df_all %>%
+  filter(participant == name)
+model_arma <- gls(filt_cen_11 ~ moving, data = df_gls, 
+             correlation = corARMA(p = 1, q = 1, form = ~pulse_id))
+summary(model_arma)
+model <- gls(filt_cen_11 ~ moving, data = df_gls)
+model <- glm(filt_cen_11 ~ moving, data = df_gls)
+summary(model)
 ## Select those components which do something in the 
-
 df_res <- data.frame()
 for(participant in unique(df_all$participant)){
   for(component in component_names){
@@ -63,7 +69,6 @@ for(participant in unique(df_all$participant)){
     df_res <- rbind(df_res, as.data.frame(coefs))
   }
 }
-
 colnames(df_res) <- c("beta", "std.err", "t.value", "p.value", "participant", "component")
 head(df_res)
 
