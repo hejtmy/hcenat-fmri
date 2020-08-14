@@ -1,10 +1,9 @@
 library(car)
 library(navr)
 library(plotly)
-library(dplyr)
 library(knitr)
-library(tidyr)
 library(nlme)
+library(tidyverse)
 
 sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
@@ -51,15 +50,84 @@ Anova(model,type = "II")
 library(nlme)
 df_gls <- df_all %>%
   filter(participant == name)
-model_arma <- gls(filt_cen_11 ~ moving, data = df_gls, 
-             correlation = corARMA(p = 1, q = 1, form = ~pulse_id))
-summary(model_arma)
 model <- gls(filt_cen_11 ~ moving, data = df_gls)
-model <- glm(filt_cen_11 ~ moving, data = df_gls)
 summary(model)
-## Select those components which do something in the 
+plot(residuals(model), type="l")
+acf(residuals(model))
+
+#model_arma <- update(model, correlation = corARMA(p = 1, q = 1, form = ~1))
+model_arma <- gls(filt_cen_11 ~ moving, data = df_gls,
+             correlation = corARMA(p = 1, q = 1, form = ~1))
+summary(model_arma)
+plot(fitted(model_arma),residuals(model_arma))
+plot(resid(model_arma, type="normalized"), type="l")
+acf(resid(model_arma, type="normalized"))
+
+df_all <- df_all %>%
+  arrange(participant, pulse_id)
+
+df_all_movement_filtered <- df_all %>%
+  group_by(participant) %>%
+  summarise(mt = mean(moving.learn), ml = mean(moving.trial)) %>%
+  filter(mt > 0, ml > 0) %>%
+  select(participant) %>%
+  left_join(df_all, by="participant")
+
+lme_movement_cen_11_au <- lme(filt_cen_11 ~ 0 + moving.learn + moving.trial,
+           random = ~ moving.learn + moving.trial | participant, #don't need the 1+ as all the data should be normalized and intercept 0 anyway
+           data = df_all_movement_filtered,
+           correlation = corAR1(form = ~1|participant),
+           method="ML")
+summary(lme_movement_cen_11_au)
+
+## TAKES FOREVER
+lme_movement_cen_11_au_11 <- lme(filt_cen_11 ~ 0 + moving.learn + moving.trial,
+                              random = ~ moving.learn + moving.trial | participant,
+                              data = df_all_movement_filtered,
+                              correlation = corARMA(p = 1, q = 1, form = ~1|participant),
+                              method="ML")
+summary(lme_movement_cen_11_au_11)
+save(lme_movement_cen_11_au_11, file="models/lme_movement_cen_11_au_11")
+
+lme_movement_cen_11 <- lme(filt_cen_11 ~ 0 + moving,
+           random = ~ moving.learn | participant,
+           data = df_all_movement_filtered,
+           method="ML")
+summary(lme_movement_cen_11)
+sapply(fitted(lme_movement_cen_11, asList = TRUE), length)
+sapply(resid(lme_movement_cen_11, asList = TRUE), length)
+
+library(broom.mixed)
+broom.mixed::augment(lme_movement_cen_11) %>%
+  ggplot(aes(pulse_id, filt_cen_11)) + 
+    geom_line() + facet_wrap(~participant) +
+    geom_line(aes(y=.fitted), col="blue")
+
+## Seeing residuals and checking which model is better
+## https://stats.stackexchange.com/questions/80823/do-autocorrelated-residual-patterns-remain-even-in-models-with-appropriate-corre
+acf(resid(lme_movement_cen_11))
+acf(resid(lme_movement_cen_11_au))
+acf(resid(lme_movement_cen_11, type="normalized"))
+acf(resid(lme_movement_cen_11_au, type="normalized"))
+acf(resid(lme_movement_cen_11_au_11, type="normalized"))
+
+data.frame(resid = resid(lme_movement_cen_11, type="normalized"),
+           participant = names(residuals(lme_movement_cen_11)),
+           volume = 1:400,
+           fitted = fitted(lme_movement_cen_11)) %>%
+  ggplot(aes(volume, resid)) + geom_line() + facet_wrap(~participant)
+
+data.frame(resid = resid(lme_movement_cen_11_au, type="normalized"),
+           participant = names(residuals(lme_movement_cen_11_au)),
+           volume = 1:400,
+           fitted = fitted(lme_movement_cen_11_au)) %>%
+  ggplot(aes(volume, resid)) + geom_line() + facet_wrap(~participant)
+
+anova(lme_movement_cen_11, lme_movement_cen_11_au, lme_movement_cen_11_au_11)
+
+## Select those components which do something moving wise -----
 df_res <- data.frame()
-for(participant in unique(df_all$participant)){
+for(participant in unique(df_all$participant)){;
   for(component in component_names){
     formula <- as.formula(paste0(component, "~moving"))
     model <- glm(formula, data = df_all[df_all$participant == participant,])
@@ -69,6 +137,7 @@ for(participant in unique(df_all$participant)){
     df_res <- rbind(df_res, as.data.frame(coefs))
   }
 }
+
 colnames(df_res) <- c("beta", "std.err", "t.value", "p.value", "participant", "component")
 head(df_res)
 
@@ -113,17 +182,6 @@ model <- glm(bold ~ value:hrf, data=df_glm)
 summary(model)
 cont <- glht(model, linfct = mcp(hrf = "Tukey"))
 summary(cont)
-
-### Mixed model -----
-df_mixed <- df_all %>%
-  select(pulse_id, participant, bold=filt_cen_11, moving.learn, moving.trial) %>%
-  pivot_longer(cols = -c(pulse_id, bold, participant), names_to = "hrf") %>%
-  arrange(hrf, participant, pulse_id)
-
-mixed_model <- lmerTest::lmer(bold ~ value:hrf + (1|participant), data = df_mixed)
-mixed_model <- lmerTest::lmer(bold ~ value:hrf + (1|participant), data = df_mixed,
-                              contrasts = list(hrf=contr.helmert(2)))
-summary(mixed_model)
 
 ### All component -----
 regressions_moving_learn_trial <- list()

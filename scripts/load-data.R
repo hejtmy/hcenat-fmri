@@ -67,6 +67,6 @@ df_hrfs <- restructure_hrfs(hrfs)
 df_mri <- restructure_mri(components)
 df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
 
-rm(res, temp, code, codes, component_names, folder, good_participants, hfr_folder,
-   hrf, hrf_folder, name, names_file, f, hrf_names, speed_folder, rotation_folder,
-   rotation, )
+rm(code, codes, component_names, folder, hrf_folder,
+   hrf, name, names_file, f, hrf_names, speed_folder, rotation_folder,
+   rotation)

@@ -8,7 +8,7 @@ reports/participants/
 # outputs
 exports/
 *.RData
-
+models/
 
 #
 .Rproj.user
