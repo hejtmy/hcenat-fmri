@@ -5,14 +5,40 @@ source('scripts/loading.R')
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
 df_preprocessing <- load_participant_preprocessing_status()
-# source("scripts/preprocess-participants.R")
 
 load("participants-prepared.RData")
 
 ## Results ----
 res <- quest_summary.participants(participants)
 res <- add_fmri_code(res, "participant", df_preprocessing)
+write.table(res, "exports/participant-performance.csv", sep=";", row.names = FALSE)
 
+## Pulses output ----
+df_temp <- res %>%
+  mutate(n_pulses = quest_pulse_end - pulse_start + 1) %>%
+  select(fmri_code, pulse_start, pulse_end, quest_pulse_end, 
+         quest_order_session, n_pulses, type)
+
+df_pulses <- data.frame(fmri_code = rep(unique(res$fmri_code), each = N_PULSES),
+                        pulse_id = rep(1:N_PULSES, length(unique(res$fmri_code))),
+                        quest_id = NA,
+                        is_pointing = FALSE, learn = FALSE, trial = FALSE)
+
+for(i in 1:nrow(df_temp)){
+  line <- df_temp[i,]
+  if(any(is.na(line))) next
+  df_pulses[df_pulses$fmri_code == line$fmri_code &
+              df_pulses$pulse_id >= line$pulse_start &
+              df_pulses$pulse_id <= line$pulse_end, "is_pointing"] <- TRUE
+  df_pulses[df_pulses$fmri_code == line$fmri_code &
+              df_pulses$pulse_id >= line$pulse_start &
+              df_pulses$pulse_id <= line$quest_pulse_end,
+            c(line$type, "quest_id")] <- list(TRUE, line$quest_order_session)
+  
+}
+
+write.table(df_pulses, "exports/participant-pulses.csv", sep=";", row.names = FALSE)
+rm(df_pulses, df_temp)
 ## Pointing ------
 
 res %>%
@@ -28,26 +54,34 @@ res %>%
   filter(type =="learn") %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
+  mutate(duration = time_end - time,
+         angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing-learn.csv"), row.names = FALSE, sep=",", quote = FALSE)
+  write.table(., file.path("exports", "pointing-learn.csv"), 
+              row.names = FALSE, sep=",", quote = FALSE)
 
 res %>%
   filter(type=="trial") %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
+  mutate(duration = time_end - time, 
+         angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing-trial.csv"), row.names = FALSE, sep=",", quote = FALSE)
+  write.table(., file.path("exports", "pointing-trial.csv"), 
+              row.names = FALSE, sep=",", quote = FALSE)
   
 ## Onsets -----
-df_onset_stop <- onset_stop_table.participants(participants, speed_threshold = 10, min_duration = 3, 
-                                               still_threshold = 1, still_duration = 1, pause_duration = 0.5)
+df_onset_stop <- onset_stop_table.participants(participants, 
+                                               speed_threshold = 10, 
+                                               min_duration = 3,
+                                               still_threshold = 1,
+                                               still_duration = 1,
+                                               pause_duration = 0.5)
 df_onset_stop <- add_fmri_code(df_onset_stop, "participant", df_preprocessing)
 
-# Adds question information
+# Adds questing information
 df_onset_stop$quest <- NA
 non_na_res <- res[!is.na(res$time) & !is.na(res$point_start),]
 for(i in 1:nrow(non_na_res)){
@@ -101,15 +135,4 @@ for(id in names(participants)){
   write.table(rotations, filename, sep=",", row.names = FALSE)
 }
 
-res_pulses <- data.frame()
-for(participant_name in names(hrfs)){
-  rot_x <- hrfs[[name]]$rotation_x
-  part_res <- res %>% filter(ID == participant_name)
-  iPulses <- which(!is.na(part_res$pulse_start) & !is.na(part_res$pulse_end))
-  pointing_pulses <- unlist(sapply(iPulses, function(x){seq(part_res$pulse_start[x], part_res$pulse_end[x], by = 1)}))
-  non_pointing_pulses <- setdiff(1:400, pointing_pulses)
-  res_pulses <- rbind(res_pulses, data.frame(poinitng = mean(rot_x[pointing_pulses]),
-                               mot = mean(rot_x[non_pointing_pulses])))
-}
 
-res_pulses
