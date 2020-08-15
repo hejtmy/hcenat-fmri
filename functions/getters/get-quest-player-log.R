@@ -8,6 +8,6 @@ get_quest_player_log <- function(quest, df_player, include_teleport = TRUE){
     return(df_player[quest_id == quest$order_session])
   }
   quest_times <- get_quest_timewindow(quest, include_teleport)
-  df_player <- df_player[Time > quest_times$start & Time < quest_times$finish, ]
+  df_player <- df_player[Time >= quest_times$start & Time <= quest_times$finish, ]
   return(df_player)
 }

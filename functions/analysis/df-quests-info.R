@@ -18,7 +18,11 @@ df_quests_info <- function(quests_logs){
   order_session <- 1
   for(i in 1:length(quests_logs)){
     quest_info <- get_quest_info(quests_logs[i])
-    df_result <- rbindlist(list(df_result, list(as.numeric(quest_info$id), order_session, quest_info$name, quest_info$type, i)))
+    df_result <- rbindlist(list(df_result, list(as.numeric(quest_info$id),
+                                                order_session,
+                                                quest_info$name,
+                                                quest_info$type,
+                                                i)))
     order_session <- order_session + 1
   }
   return(df_result)

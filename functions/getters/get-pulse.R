@@ -14,7 +14,7 @@ get_pulse_at_time <- function(df_player, times){
   }
   pulses <- c()
   for(time in times){
-    pulses <- c(pulses, df_player[Time > time, .SD[1]$pulse_id])
+    pulses <- c(pulses, df_player[Time >= time, .SD[1]$pulse_id])
   }
   return(pulses)
 }

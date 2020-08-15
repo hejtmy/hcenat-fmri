@@ -73,7 +73,8 @@ pointing_results <- function(quests_logs, df_player){
     quest_pointing$point_start_fmri <- quest_pointing$point_start - first_pulse_time 
     quest_pointing$point_end_fmri <- quest_pointing$point_end - first_pulse_time 
     
-    quest_pointing <- as.data.frame(quest_pointing) %>% mutate(quest_order_session = quest_order_session)
+    quest_pointing <- as.data.frame(quest_pointing) %>% 
+      mutate(quest_order_session = quest_order_session)
     df_results <- rbindlist(list(df_results, quest_pointing), fill = TRUE)
   }
   res <- merge(df_results, df_quests, by.x = "quest_order_session", by.y = "order_session")
