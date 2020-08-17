@@ -74,6 +74,7 @@ restructure_hrfs <- function(hrfs){
 df_hrfs <- restructure_hrfs(hrfs)
 df_mri <- restructure_mri(components)
 df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
+df_all <- left_join(df_all, df_pulses, by=c("participant" = "ID", "pulse_id"))
 
 rm(code, codes, component_names, folder, hrf_folder,
    hrf, name, names_file, f, hrf_names, speed_folder, rotation_folder,
