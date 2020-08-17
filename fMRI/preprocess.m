@@ -1,4 +1,11 @@
+%%
 clear ; clc
+
+%% Setting FMRI base
+TR = 3; % TR = 3 sec
+SESSION_LENGTH = 400;
+MIN_PULSE_RATIO = 0.5; %minimum ratio of a pulse happening in event
+
 % paths work if the matlab is loaded at the project ROOT
 %% preparing data paths
 dataDirectory = 'E:\OneDrive\NUDZ\projects\HCENAT\MRI-data-tomecek\';
@@ -31,10 +38,6 @@ pointingLearnData = filtervalidevents(pointingLearnData);
 
 pointingTrialData = readeventfile(pthPointingTrialData, '%s %f %f %f');
 pointingTrialData = filtervalidevents(pointingTrialData);
-%% Setting FMRI base
-TR = 3; % TR = 3 sec
-SESSION_LENGTH = 400;
-MIN_PULSE_RATIO = 0.75; %minimum ratio of a pulse happening in event
 
 %% Per subject
 for i = 1:numel(subjects)
