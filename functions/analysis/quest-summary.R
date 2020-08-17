@@ -48,23 +48,31 @@ quest_summary <- function(quest, df_player){
   quest_times <- get_quest_timewindow(quest, include_teleport = FALSE) #can be null
   result$name <- quest$name
   result$quest_order_session <- quest$order_session
-  result$time <- ifelse(length(quest_times) != 2, NA, diff(c(quest_times$start, quest_times$finish)))
+  result$time <- ifelse(length(quest_times) != 2,
+                        NA, diff(c(quest_times$start, quest_times$finish)))
   player_log <- get_quest_player_log(quest, df_player, include_teleport = FALSE)
+  first_fmri_time <- get_first_pulse_time(df_player)
   # TODO - simplyfy this
   if(length(quest_times) == 2){
-    result$quest_pulse_start <- get_pulse_at_time(player_log, quest_times$start)
-    result$quest_pulse_starttime <- get_pulse_timewindow(player_log, result$quest_pulse_start)$start
+    result$quest_pulse_start <- head(player_log$pulse_id, 1)
+    result$quest_starttime <- head(player_log$Time, 1)
     result$quest_pulse_end <- tail(player_log$pulse_id, 1)
-    result$quest_pulse_endtime <- tail(player_log$Time, 1)
+    result$quest_endtime <- tail(player_log$Time, 1)
   } else {
-    result$quest_pulse_start <- NA
-    result$quest_pulse_starttime <- NA
-    result$quest_pulse_end <- NA
-    result$quest_pulse_endtime <- NA
+    result$quest_pulse_start <- NA_real_
+    result$quest_starttime <- NA_real_
+    result$quest_pulse_end <- NA_real_
+    result$quest_endtime <- NA_real_
   }
+  result$quest_start_fmri_time <- result$quest_starttime - first_fmri_time
+  result$quest_end_fmri_time <- result$quest_endtime - first_fmri_time
   #calculating sky distance from start to goal
-  start_stop <- get_quest_start_finish_positions(player_log, quest, include_teleport = FALSE)
-  if(!is.null(start_stop)) result$sky_distance <- navr::euclid_distance(start_stop$start, start_stop$finish)
+  start_stop <- get_quest_start_finish_positions(player_log, quest,
+                                                 include_teleport = FALSE)
+  if(!is.null(start_stop)){
+    result$sky_distance <- navr::euclid_distance(start_stop$start,
+                                                 start_stop$finish)
+  }
   result$walked_distance <- diff(range(player_log$cumulative_distance))
   result$finished <- was_quest_finished(quest)
   result$distance_to_last_step <- distance_to_last_step(quest, player_log)

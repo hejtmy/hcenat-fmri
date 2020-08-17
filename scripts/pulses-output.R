@@ -21,34 +21,44 @@ df_temp <- res %>%
 
 df_pulses <- data.frame(fmri_code = rep(unique(res$fmri_code), each = N_PULSES),
                         pulse_id = rep(1:N_PULSES, length(unique(res$fmri_code))),
-                        quest_id = NA,
-                        is_pointing = FALSE, learn = FALSE, trial = FALSE)
+                        quest_id = NA, is_pointing = FALSE, 
+                        learn = FALSE, trial = FALSE)
 
 for(i in 1:nrow(df_temp)){
   line <- df_temp[i,]
-  if(any(is.na(line))) next
-  df_pulses[df_pulses$fmri_code == line$fmri_code &
-              df_pulses$pulse_id >= line$pulse_start &
-              df_pulses$pulse_id <= line$pulse_end, "is_pointing"] <- TRUE
-  df_pulses[df_pulses$fmri_code == line$fmri_code &
-              df_pulses$pulse_id >= line$pulse_start &
-              df_pulses$pulse_id <= line$quest_pulse_end,
-            c(line$type, "quest_id")] <- list(TRUE, line$quest_order_session)
-  
+  # Should be fixing the first pulse 
+  if(line$quest_order_session == 1 & is.na(line$pulse_start)){
+    line$pulse_start <- 1
+  }
+  if(is.na(line$type)) next # hack for unusual happenstances in the logs
+  if(!is.na(line$pulse_end)){
+    df_pulses[df_pulses$fmri_code == line$fmri_code &
+                df_pulses$pulse_id >= line$pulse_start &
+                df_pulses$pulse_id <= line$pulse_end, "is_pointing"] <- TRUE
+  }
+  if(!is.na(line$quest_pulse_end)){
+    df_pulses[df_pulses$fmri_code == line$fmri_code &
+                df_pulses$pulse_id >= line$pulse_start &
+                df_pulses$pulse_id <= line$quest_pulse_end,
+              c(line$type, "quest_id")] <- list(TRUE, line$quest_order_session)
+  }
 }
-
+df_pulses <- select(res, ID, fmri_code) %>%
+  unique() %>% right_join(df_pulses, by="fmri_code")
 write.table(df_pulses, "exports/participant-pulses.csv", sep=";", row.names = FALSE)
 rm(df_pulses, df_temp)
-## Pointing ------
 
+## Pointing ------
 res %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time, angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
+  mutate(duration = time_end - time, 
+         angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   filter(!is.na(time)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing.csv"), row.names = FALSE, sep=",", quote = FALSE)
+  write.table(., file.path("exports", "pointing.csv"), row.names = FALSE, 
+              sep=",", quote = FALSE)
 
 res %>%
   filter(type =="learn") %>%
@@ -58,14 +68,15 @@ res %>%
          angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing-learn.csv"), 
+  write.table(., file.path("exports", "pointing-learn.csv"),
               row.names = FALSE, sep=",", quote = FALSE)
 
 res %>%
   filter(type=="trial") %>%
-  select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
+  select(fmri_code, point_start_fmri, point_end_fmri, 
+         correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time, 
+  mutate(duration = time_end - time,
          angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
@@ -73,22 +84,27 @@ res %>%
               row.names = FALSE, sep=",", quote = FALSE)
   
 ## Onsets -----
-df_onset_stop <- onset_stop_table.participants(participants, 
+df_onset_stop <- onset_stop_table.participants(participants,
                                                speed_threshold = 10, 
-                                               min_duration = 3,
+                                               min_duration = 2,
                                                still_threshold = 1,
                                                still_duration = 1,
                                                pause_duration = 0.5)
 df_onset_stop <- add_fmri_code(df_onset_stop, "participant", df_preprocessing)
 
 # Adds questing information
-df_onset_stop$quest <- NA
-non_na_res <- res[!is.na(res$time) & !is.na(res$point_start),]
+df_onset_stop$quest <- NA_real_
+non_na_res <- res[!is.na(res$quest_start_fmri_time) &
+                    !is.na(res$quest_end_fmri_time), ]
+## The stillness can end in the next quest
+# TODO - arrrange and then basically always add the lowest order? the one in which the event started
+# TODO - Check that this is working as indended :|
+# Brobablye 
 for(i in 1:nrow(non_na_res)){
   line <- non_na_res[i,]
   iFit <- df_onset_stop$ID == line$ID &
-          df_onset_stop$time > line$point_start & 
-          df_onset_stop$time + df_onset_stop$duration < line$point_start + line$time
+          df_onset_stop$fmri_time >= line$quest_start_fmri_time &
+          df_onset_stop$fmri_time <= line$quest_end_fmri_time
   if(sum(iFit) > 0) df_onset_stop[iFit, ]$quest <- line$quest_order_session
 }
 
@@ -100,19 +116,22 @@ df_onset_stop <- res %>%
 df_onset_stop %>%
   mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
   select(fmri_code, time, duration, movement_type) %>%
-  write.table(., file.path("exports","walking.csv"), row.names = FALSE, sep=",", quote = FALSE)
+  write.table(., file.path("exports","walking.csv"), row.names = FALSE, 
+              sep=",", quote = FALSE)
 
 df_onset_stop %>%
   filter(type == "trial") %>%
   mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
   select(fmri_code, time, duration, movement_type) %>%
-  write.table(., file.path("exports","walking-trial.csv"), row.names = FALSE, sep=",", quote = FALSE)
+  write.table(., file.path("exports","walking-trial.csv"), row.names = FALSE, 
+              sep=",", quote = FALSE)
 
 df_onset_stop %>%
   filter(type == "learn") %>%
   mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
   select(fmri_code, time, duration, movement_type) %>%
-  write.table(., file.path("exports","walking-learn.csv"), row.names = FALSE, sep=",", quote = FALSE)
+  write.table(., file.path("exports","walking-learn.csv"), row.names = FALSE, 
+              sep=",", quote = FALSE)
 
 ## Speeds ------
 for(id in names(participants)){
@@ -134,5 +153,3 @@ for(id in names(participants)){
   rotations <- rotations[, c("x", "y", "total")]
   write.table(rotations, filename, sep=",", row.names = FALSE)
 }
-
-

@@ -4,6 +4,14 @@ options(gargle_oauth_email = "hejtmy@gmail.com")
 message("Loading demographics")
 df_preprocessing <- load_participant_preprocessing_status()
 
+# Loading pulses -----
+df_pulses <- read.table(file.path("exports", "participant-pulses.csv"), 
+                            sep = ";", header = TRUE)
+
+# Loading behavioral data ----
+df_behavioral <- read.table(file.path("exports", "participant-performance.csv"),
+                            sep=";", header = TRUE)
+
 # Load components -----
 message("Loading components")
 folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
@@ -20,7 +28,7 @@ good_participants <- intersect(names(components[[1]]), good_participants)
 
 hrf_names <- c("moving", "moving-learn", "moving-trial",
                "still", "still-learn", "still-trial",
-               "pointing")
+               "pointing", "pointing-learn", "pointing-trial")
 hrf_folder <- file.path("exports", "hrf")
 speed_folder <- file.path("exports", "speeds")
 rotation_folder <- file.path("exports", "rotations")
