@@ -47,16 +47,17 @@ summary(model)
 Anova(model,type = "II")
 
 ### Autocorrelation ------
-library(nlme)
 df_gls <- df_all %>%
   filter(participant == name)
-model <- gls(filt_cen_11 ~ moving, data = df_gls)
+model <- gls(filt_hpc_12 ~ moving.trial + moving.learn +
+               pointing.trial + pointing.learn, data = df_gls)
 summary(model)
 plot(residuals(model), type="l")
 acf(residuals(model))
 
 #model_arma <- update(model, correlation = corARMA(p = 1, q = 1, form = ~1))
-model_arma <- gls(filt_cen_11 ~ moving, data = df_gls,
+model_arma <- gls(filt_hpc_12 ~ moving.trial + moving.learn + 
+                    pointing.trial + pointing.learn, data = df_gls,
              correlation = corARMA(p = 1, q = 1, form = ~1))
 summary(model_arma)
 plot(fitted(model_arma),residuals(model_arma))
@@ -66,24 +67,29 @@ acf(resid(model_arma, type="normalized"))
 df_all <- df_all %>%
   arrange(participant, pulse_id)
 
-df_all_movement_filtered <- df_all %>%
-  group_by(participant) %>%
-  summarise(mt = mean(moving.learn), ml = mean(moving.trial)) %>%
-  filter(mt > 0, ml > 0) %>%
-  select(participant) %>%
-  left_join(df_all, by="participant")
+## Mixed models -----
+lme_movement_mot_33<- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial +
+                            pointing.learn + pointing.trial,
+                              random = ~ 0 + moving.learn + moving.trial +
+                            pointing.learn + pointing.trial | participant,
+                              data = df_all,
+                              method="ML")
+summary(lme_movement_mot_33)
 
-lme_movement_cen_11_au <- lme(filt_cen_11 ~ 0 + moving.learn + moving.trial,
-           random = ~ moving.learn + moving.trial | participant, #don't need the 1+ as all the data should be normalized and intercept 0 anyway
-           data = df_all_movement_filtered,
-           correlation = corAR1(form = ~1|participant),
-           method="ML")
-summary(lme_movement_cen_11_au)
+lme_movement_mot_33_au <- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial +
+                                pointing.learn + pointing.trial,
+           random = ~ 0 + moving.learn + moving.trial +
+             pointing.learn + pointing.trial | participant,
+           data = df_all,
+           method="ML",
+           correlation = corAR1(form = ~1|participant))
+
+summary(lme_movement_mot_33_au)
 
 ## TAKES FOREVER
-lme_movement_cen_11_au_11 <- lme(filt_cen_11 ~ 0 + moving.learn + moving.trial,
+lme_movement_cen_11_au_11 <- lme(filt_cen_11 ~ 1 + moving.learn + moving.trial,
                               random = ~ moving.learn + moving.trial | participant,
-                              data = df_all_movement_filtered,
+                              data = df_all,
                               correlation = corARMA(p = 1, q = 1, form = ~1|participant),
                               method="ML")
 summary(lme_movement_cen_11_au_11)
@@ -91,7 +97,7 @@ save(lme_movement_cen_11_au_11, file="models/lme_movement_cen_11_au_11")
 
 lme_movement_cen_11 <- lme(filt_cen_11 ~ 0 + moving,
            random = ~ moving.learn | participant,
-           data = df_all_movement_filtered,
+           data = df_all,
            method="ML")
 summary(lme_movement_cen_11)
 sapply(fitted(lme_movement_cen_11, asList = TRUE), length)
@@ -124,6 +130,36 @@ data.frame(resid = resid(lme_movement_cen_11_au, type="normalized"),
   ggplot(aes(volume, resid)) + geom_line() + facet_wrap(~participant)
 
 anova(lme_movement_cen_11, lme_movement_cen_11_au, lme_movement_cen_11_au_11)
+
+## Mixed models II ------
+df_all_mixed <- df_all %>%
+  mutate(moving.learn = moving*learn, moving.trial = moving*trial,
+         pointing.learn = pointing*learn, pointing.trial = pointing*trial)
+
+lme_movement_cen_11_au <- lme(filt_cen_11 ~ 1 + moving:trial,
+                              random = ~ moving:trial | participant,
+                              data = df_all_mixed,
+                              method="ML")
+summary(lme_movement_cen_11_au)
+## TAKES FOREVER
+lme_movement_cen_11_au_11 <- lme(filt_cen_11 ~ 1 + moving.learn + moving.trial,
+                                 random = ~ moving.learn + moving.trial | participant,
+                                 data = df_all_movement_filtered,
+                                 correlation = corARMA(p = 1, q = 1, form = ~1|participant),
+                                 method="ML")
+summary(lme_movement_cen_11_au_11)
+save(lme_movement_cen_11_au_11, file="models/lme_movement_cen_11_au_11")
+
+summary(lme_movement_cen_11)
+sapply(fitted(lme_movement_cen_11, asList = TRUE), length)
+sapply(resid(lme_movement_cen_11, asList = TRUE), length)
+
+library(broom.mixed)
+broom.mixed::augment(lme_movement_cen_11) %>%
+  ggplot(aes(pulse_id, filt_cen_11)) + 
+  geom_line() + facet_wrap(~participant) +
+  geom_line(aes(y=.fitted), col="blue")
+
 
 ## Select those components which do something moving wise -----
 df_res <- data.frame()
