@@ -24,7 +24,9 @@ quests_summary.session <- function(data){
   df_quests <- df_quests_info(data$quests_logs)
   pointing <- pointing_results.session(data)
   result <- quests_summary(df_quests, data$quests_logs, data$player_log)
-  if(!is.null(pointing)) result <- merge(pointing, result, by=c("name", "quest_order_session"), all=TRUE)
+  if(!is.null(pointing)){
+    result <- merge(pointing, result, by=c("name", "quest_order_session"), all=TRUE)
+  }
   return(result)
 }
 
@@ -46,7 +48,7 @@ quest_summary <- function(quest, df_player){
   quest_times <- get_quest_timewindow(quest, include_teleport = FALSE) #can be null
   result$name <- quest$name
   result$quest_order_session <- quest$order_session
-  result$time <- ifelse(length(quest_times) == 2, NA, diff(c(quest_times$start, quest_times$finish)))
+  result$time <- ifelse(length(quest_times) != 2, NA, diff(c(quest_times$start, quest_times$finish)))
   player_log <- get_quest_player_log(quest, df_player, include_teleport = FALSE)
   # TODO - simplyfy this
   if(length(quest_times) == 2){
