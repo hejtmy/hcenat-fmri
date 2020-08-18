@@ -1,6 +1,6 @@
 options(gargle_oauth_email = "hejtmy@gmail.com")
 
-if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- ""
+if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- "."
 
 # Loading demograhics ---------
 message("Loading demographics")
