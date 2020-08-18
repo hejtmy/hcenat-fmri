@@ -1,0 +1,217 @@
+---
+title: "manuscript-results-possibilities"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "18/08/2020"
+output: html_document
+
+---
+
+```{r setup, message=FALSE, warning=FALSE, results='hide'}
+library(multcomp)
+library(car)
+library(navr)
+library(plotly)
+library(knitr)
+library(nlme)
+library(tidyverse)
+
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+RELATIVE_DIR <- ".."
+
+sapply(list.files("../functions", full.names = TRUE, recursive = TRUE), source)
+source("../scripts/load-data.R")
+df_all <- df_all %>% arrange(participant, pulse_id)
+```
+
+## Modelování HRF
+
+Celkově jsem uvažoval o dvou metodách modelování HRF odpovědí pro dva typy trialů. Buď modelovat zvlášť, nebo modelovat odpovědi po celou dobu experimentu a následně je rozdělit. 
+
+Toto je výsledek modelování zvlášť. Je možné vidět "překryvy" ve chvíli, kdy trial končí tak hrf předchozího ještě dobíhá.
+```{r, echo=FALSE}
+plot_movement_hrfs <- function(hrfs, df_behavioral, participant){
+  hrf <- hrfs[[participant]]
+  ggplot(data=data.frame()) +
+    #geom_line(aes(1:400, y=hrf$moving), size=2) +
+    geom_line(aes(1:400, y=hrf$`moving-learn`), color="red", size=1.25) +
+    geom_line(aes(1:400, y=hrf$`moving-trial`), color="blue", size=1.25) +
+    scale_color_manual(values=c("learn" = "red", "trial"="blue"))
+}
+
+plot_movement_hrfs(hrfs, df_behavioral, "HCE_E_14") +
+  labs(x = "pulse", y="HRF", title="Modeled HRF for moving events in trial vs learning") +
+  theme(legend.position = "bottom")
+```
+
+ toto je výsledek "labelování" zvlášť. Tzn. movement je modelován po celou dobu experimentu a "vybarven" posléze podle typu trialu
+
+```{r, echo=FALSE}
+participant_id <- "HCE_E_14"
+hrf <- as.data.frame(hrfs[[participant_id]]) %>%
+  select(moving.learn, moving, moving.trial) %>%
+  mutate(pulse_id = 1:N_PULSES, ID = participant_id) %>%
+  left_join(df_pulses, by=c("ID", "pulse_id")) %>%
+  pivot_longer(cols=c(moving.learn:moving.trial))
+
+# Visualising coloring of 
+filter(hrf, name == "moving") %>%
+  ggplot(aes(pulse_id, value, color=learn, group="ALL")) +
+  geom_line(size=1.25) +
+  scale_color_manual(values=c(`TRUE` = "red", `FALSE`="blue")) +
+  labs(x = "pulse", y="HRF", title="Modeled HRF for all moving events and labelled per type of trial") +
+  theme(legend.position = "bottom")
+```
+
+Pro analýzy používám ten první způsob, ale není problém přehodit to na ten druhý. Nevím, co je typičtější u takhle "překrývajících" se eventů.
+
+## Hromadné GLM
+Jeden z navrhovaných způsobů bylo očekávat, že autokorelace bude u všech participantů stejná a "ignorovat ji". Generovat pak pomocí general linear modelu koeficienty pro jednotlivé prediktory pro participanta zvlášť a následně tyto koeficienty porovnat. Podobně to dělá FSL (i když autokorelaci zohledňuje) - tedy modeluje participanty pomocí GLM zvlášť a následně pomocí bayese porovnává beta koeficienty mezi skupinami nebo vůči nule. Je to mnohem rychlejší než mixed/hierarchical modeling.
+
+```{r, echo=FALSE}
+df_res <- data.frame()
+for(participant in unique(df_all$participant)){
+  df_participant <- df_all[df_all$participant == participant,]
+  glm_model <- glm(filt_mot_33 ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial, data = df_participant)
+  res <- as.data.frame(t(coef(glm_model)))
+  res$participant <- participant
+  df_res <- rbind(df_res, res)
+}
+```
+
+Tímto postupem pro komponentu MOT 33 pak dostaneme následné beta koeficienty.
+
+```{r}
+df_res %>%
+  pivot_longer(cols=-participant) %>%
+  ggplot(aes(value, fill=name)) + geom_histogram(bins = 25) + 
+    facet_wrap(~name) + geom_vline(xintercept = 0) +
+    labs(title = "MOT 33 component coefficients", 
+         x = "Beta coefficient") +
+    guides(fill=FALSE)
+```
+
+Je tam bohužel vidět, že zatím co moving \Beta se pohybuje cca s normálním rozdělením, pointing je "all over the place", takže nějaké bayes metody nebo boostraping by asi byl pro následnou analýzu efektivnější.
+
+## Mixed modely
+
+Následující postup jsem objevil jako primární doporučení řešení autokorelací a následně jsem jej i našel jako zdokumentovaný v tomoto preprintu [preprintu](https://psyarxiv.com/crx4m/). Stejnou metodiku používá i balík [fmri](https://cran.r-project.org/web/packages/fmri/fmri.pdf) pro své modelování. To je balík pod Weierstrass Institute for Applied Analysis and Stochastics v Berlíně (http://www.wias-berlin.de/software/imaging/), takže doufám, že to je postup spolehlivý.
+
+Během fitování mixed modelů jsem měl problémy s nekonvergencí. Tento "issue" jsem spravil po nahlédnutí pod pokličku zmiňovaného fmri balíku, který specifikuje relativní tolerance pro optimizaci na tolerantnější než jsou defaultně.
+
+Vzhledem k tomu, že data jsou už normalizovaná, tak nemodeluji intercept ani participant intercept, za random efekty považuji pouze within subject koeficient pro jednotlivé prediktory.
+
+```{r}
+model <- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial,
+             random = ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial | participant,
+             method="REML",
+             data = df_all,
+             control = nlme::lmeControl(rel.tol=1e-6))
+summary(model)
+```
+
+### Konstrasty
+Kontrasty lze podle všeho počítat pomocí General Linear Hypotheses testing procerudy z multcomp balíku. 
+
+pointing learn | pointing trial | moving learn | moving trial | popis
+1 | -1 | 0 | 0 | zda je pointing na známý a neznámý předmět odlišné
+1 | 1 | 0 | 0 | zda je pointing obecně signifikantní
+0 | 0 | 1 | -1 | zda je pohyb dle navigace a bez navigace odlišné
+0 | 0 | 1 | 1 | zda je pohyb obecně signifikatní
+
+```{r}
+contrast <- matrix(c(-1,1,0,0,1,1,0,0,0,0,-1,1,0,0,1,1), 4, 4)
+rownames(contrast) <- c("movement.trial > movement.learn", "movement > 0", 
+                        "pointing.trial > pointing.learn", "pointing > 0")
+contrast
+out <- multcomp::glht(model, linfct=contrast)
+summary(out)
+```
+
+## Autokorelace
+
+Mixed modely výše umožňují i odstranění autokorelace pomocí ARMA fitu a následného odstínění. Vizualizace ACF modelu bez autokorelace
+
+```{r}
+plot(ACF(model, resType="normalized"), alpha=0.05)
+```
+Adding an autoregresive order 1 with correlation structure set to 0.3. Toto je default u `fmri` balíku. 
+
+```{r, eval=FALSE}
+model_ar1 <- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial,
+             random = ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial | participant,
+             method="REML",
+             data = df_all,
+             control = nlme::lmeControl(rel.tol=1e-6),
+             correlation = corAR1(value=0.3, form = ~1 | participant))
+```
+```{r, echo=FALSE}
+load("../models/lme_mot_33_ar1")
+```
+
+```{r}
+summary(model_ar1)
+plot(ACF(model_ar1, resType="normalized"), alpha=0.05)
+```
+
+Autokorelace nějaká zůstává, ale situace se zdá být trochu lepší. A když modely porovnáme, autokorelovaný se zdá být obecně spolehlivější.
+```{r}
+anova(model, model_ar1)
+```
+
+Zatímco default je Autoregresive order 1 bez moving average, jiné články navrhují ARMA s AR 1 a MA také 1 (https://www.nature.com/articles/s41467-019-09230-w). Obojí jsem nastavil na korelační koef. 0.3.
+```{r, eval=FALSE}
+model_arma <- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial,
+             random = ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial | participant,
+             method="REML",
+             data = df_all,
+             control = nlme::lmeControl(rel.tol=1e-6),
+             correlation = corARMA(value=c(0.3,0.3), p=1, q=1, form = ~1 | participant))
+```
+```{r, echo=FALSE}
+load("../models/lme_mot_33_arma")
+```
+```{r}
+summary(model_arma)
+plot(ACF(model_arma, resType="normalized"), alpha=0.05)
+```
+
+Zdá se, že to opravdu "řeší" model ještě lépe. Zatímco Phi je 0.85 (stejně jako u AR1) , theta je dokonce 0.98. Při porovnání anovou dostáváme jednoznačně nejlepší fit.
+
+```{r}
+anova(model, model_ar1, model_arma)
+```
+
+Aplikováním kýžených kontrastů na nový model pak dostáváme:
+```{r}
+out <- multcomp::glht(model_arma, linfct=contrast)
+summary(out)
+```
+
+Problém je pouze doba modelování, která je signifikatně pomalejší (cca 15 minut na jednu komponentu). Dá se zrychlit pomocí nastavení optimizačních koeficientů na "fixed", tzn během optimizace se už na autokorelaci nesahá.
+
+```{r, eval=FALSE}
+model_arma_fixed <- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial,
+             random = ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial | participant,
+             method="REML",
+             data = df_all,
+             control = nlme::lmeControl(rel.tol=1e-6),
+             correlation = corARMA(value=c(0.3,0.3), p=1, q=1, form = ~1 | participant, fixed=TRUE))
+```
+
+Ale při pohledu na AIC se fixed model zdá horší než běžná autokorelace bez MA.
+
+```{r, echo=FALSE}
+load("../models/lme_mot_33_arma_fixed")
+```
+
+```{r}
+anova(model_arma_fixed, model_ar1, model_arma)
+```
+
+## Závěr
+
+- modeluji pouze ty eventy, které zabírají alespoň 50% doby pulsu (tzn pokud se člověk rozejde v čase 2.9, tak modeluji až od pulsu 2)
+- používám separátně modelované HRF řady pro eventy v trial vs learn conditions
+- propočty jsou zatím pro ARMA(1,0), mohu updatovat na ARMA(1,1), ale to bych raději počítal v nějakém výpočetním prostředí, kam zatím nemám přístup.
+- používám mixed modely s random efektem všech proměnných vůči participantovi (tzn. každý participant má fitlý custom \Beta pro každý prediktor)
+
