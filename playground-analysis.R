@@ -1,3 +1,4 @@
+library(multcomp)
 library(car)
 library(navr)
 library(plotly)
@@ -47,8 +48,13 @@ summary(model)
 Anova(model,type = "II")
 
 ### Autocorrelation ------
+
 df_gls <- df_all %>%
-  filter(participant == name)
+  filter(participant == name) %>%
+  arrange(pulse_id)
+
+df_all <- df_all %>% arrange(participant, pulse_id)
+
 model <- gls(filt_hpc_12 ~ moving.trial + moving.learn +
                pointing.trial + pointing.learn, data = df_gls)
 summary(model)
@@ -57,8 +63,9 @@ acf(residuals(model))
 
 #model_arma <- update(model, correlation = corARMA(p = 1, q = 1, form = ~1))
 model_arma <- gls(filt_hpc_12 ~ moving.trial + moving.learn + 
-                    pointing.trial + pointing.learn, data = df_gls,
-             correlation = corARMA(p = 1, q = 1, form = ~1))
+                    pointing.trial + pointing.learn, 
+                  data = df_gls,
+                  correlation = corAR1(value=0.3, form = ~1))
 summary(model_arma)
 plot(fitted(model_arma),residuals(model_arma))
 plot(resid(model_arma, type="normalized"), type="l")
@@ -68,22 +75,24 @@ df_all <- df_all %>%
   arrange(participant, pulse_id)
 
 ## Mixed models -----
-lme_movement_mot_33<- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial +
+# THE tolerance taken from fmri package
+lme_movement_mot_33<- lme(filt_hpc_12 ~ 0 + moving.learn + moving.trial +
                             pointing.learn + pointing.trial,
-                              random = ~ 0 + moving.learn + moving.trial +
+                          random = ~ 0 + moving.learn + moving.trial +
                             pointing.learn + pointing.trial | participant,
-                              data = df_all,
-                              method="ML")
+                          data = df_all,
+                          method="ML",
+                          control = nlme::lmeControl(rel.tol=1e-6))
 summary(lme_movement_mot_33)
 
-lme_movement_mot_33_au <- lme(filt_mot_33 ~ 0 + moving.learn + moving.trial +
+lme_movement_mot_33_au <- lme(filt_hpc_54 ~ 0 + moving.learn + moving.trial +
                                 pointing.learn + pointing.trial,
            random = ~ 0 + moving.learn + moving.trial +
              pointing.learn + pointing.trial | participant,
            data = df_all,
            method="ML",
-           correlation = corAR1(form = ~1|participant))
-
+           correlation = corAR1(form = ~1|participant),
+           control = nlme::lmeControl(rel.tol=1e-6))
 summary(lme_movement_mot_33_au)
 
 ## TAKES FOREVER
@@ -160,7 +169,10 @@ broom.mixed::augment(lme_movement_cen_11) %>%
   geom_line() + facet_wrap(~participant) +
   geom_line(aes(y=.fitted), col="blue")
 
-
+contrast <- matrix(c(1, -1, 0, 0), 1)
+contrast <- matrix(c(0, 0, -1, 1), 1)
+cont <- glht(lme_movement_mot_33, linfct = contrast)
+summary(cont)
 ## Select those components which do something moving wise -----
 df_res <- data.frame()
 for(participant in unique(df_all$participant)){;
@@ -188,7 +200,6 @@ df_res %>%
   pivot_wider(names_from = pass, values_from = n)
 
 ## Single testing without moving ----
-library(multcomp)
 component_name <- names(comps)[1]
 df_glm <- participant_series_long %>%
   filter(grepl("moving.", hrf)) %>%
