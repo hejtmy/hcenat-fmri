@@ -1,21 +1,24 @@
 options(gargle_oauth_email = "hejtmy@gmail.com")
 
+if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- ""
+
 # Loading demograhics ---------
 message("Loading demographics")
-df_preprocessing <- load_participant_preprocessing_status()
+df_preprocessing <- read.table(file.path(RELATIVE_DIR, "exports", "preprocessing.csv"), 
+                               sep = ";", header = TRUE)
 
 # Loading pulses -----
-df_pulses <- read.table(file.path("exports", "participant-pulses.csv"), 
-                            sep = ";", header = TRUE)
+df_pulses <- read.table(file.path(RELATIVE_DIR, "exports", "participant-pulses.csv"), 
+                        sep = ";", header = TRUE)
 
 # Loading behavioral data ----
-df_behavioral <- read.table(file.path("exports", "participant-performance.csv"),
+df_behavioral <- read.table(file.path(RELATIVE_DIR, "exports", "participant-performance.csv"),
                             sep=";", header = TRUE)
 
 # Load components -----
 message("Loading components")
-folder <- file.path(data_dir, "../MRI-data-tomecek/filtered")
-names_file <- file.path(data_dir, "../MRI-data-tomecek/subs_20190830_1422.txt")
+folder <- file.path(DATA_DIR, "../MRI-data-tomecek/filtered")
+names_file <- file.path(DATA_DIR, "../MRI-data-tomecek/subs_20190830_1422.txt")
 components <- load_mri(folder, names_file)
 components <- rename_mri_participants(components, df_preprocessing)
 fmri <- restructure_mri(components)
@@ -29,9 +32,9 @@ good_participants <- intersect(names(components[[1]]), good_participants)
 hrf_names <- c("moving", "moving-learn", "moving-trial",
                "still", "still-learn", "still-trial",
                "pointing", "pointing-learn", "pointing-trial")
-hrf_folder <- file.path("exports", "hrf")
-speed_folder <- file.path("exports", "speeds")
-rotation_folder <- file.path("exports", "rotations")
+hrf_folder <- file.path(RELATIVE_DIR, "exports", "hrf")
+speed_folder <- file.path(RELATIVE_DIR, "exports", "speeds")
+rotation_folder <- file.path(RELATIVE_DIR, "exports", "rotations")
 
 ## Loading hrfs ------
 message("loading hrfs")
@@ -75,6 +78,7 @@ df_hrfs <- restructure_hrfs(hrfs)
 df_mri <- restructure_mri(components)
 df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by=c("participant" = "ID", "pulse_id"))
+df_all <- df_all %>% arrange(participant, pulse_id)
 
 rm(code, codes, component_names, folder, hrf_folder,
    hrf, name, names_file, f, hrf_names, speed_folder, rotation_folder,
