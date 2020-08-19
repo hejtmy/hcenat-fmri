@@ -4,6 +4,7 @@ library(tidyverse)
 
 sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+RELATIVE_DIR <- "."
 
 source("scripts/load-data.R")
 df_all <- df_all %>% arrange(participant, pulse_id)
@@ -15,8 +16,8 @@ rownames(contrast) <- c("movement.trial > movement.learn", "movement > 0",
                         "pointing.trial > pointing.learn", "pointing > 0")
 
 contrast_output <- function(model, contrast){
-  out <- multcomp::glht(model, lincft=contrast)
-  out <- as.data.frame(summary(out)$test[c('coefficients', 'sigma', 'tstat', 'pvalues')])
+  out <- multcomp::glht(model, linfct=contrast)
+  out <- as.data.frame(summary(out)$test[c('tstat', 'pvalues')])
   out$contrast <- rownames(contrast)
   return(out)
 }
@@ -41,20 +42,22 @@ for(component in component_names){
   form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
   form <- as.formula(form)
   mod <- lme_second_order_model(form)
-  fname <- paste0("lme_", component, "_ar1")
+  fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1"))
   save(mod, file=fname)
   cont <- contrast_output(mod, contrast) %>%
-    mutate(compoentn = component)
+    mutate(component = component)
   df_mixed_contrast <- rbind(df_mixed_contrast, cont)
   
-  mod <- tidy(mod) %>%
+  mod_out <- tidy(mod) %>%
     filter(effect == "fixed") %>%
     select(-c(effect, group)) %>%
     mutate(component = component)
-  df_mixed_beta <- rbind(df_mixed_beta, mod)
+  df_mixed_beta <- rbind(df_mixed_beta, mod_out)
 }
-write.table(df_mixed_beta, file="summaries/second-order-mixed-beta.csv")
-write.table(df_mixed_contrast, file="summaries/second-order-mixed-contrasts.csv")
+write.table(df_mixed_beta, file = "summaries/second-order-mixed-beta.csv",
+            sep=";", row.names = FALSE)
+write.table(df_mixed_contrast, file = "summaries/second-order-mixed-contrasts.csv",
+            sep = ";", row.names = FALSE)
   
 ## Mixed model first level output -------
 lme_first_order_model <- function(formula, dat){
@@ -70,14 +73,14 @@ for(component in component_names){
   message("\nCalculating for component ", component)
   for(participant_code in participant_names){
     cat(".")
-    df_participant <- df_all[df_all$participant == participant, ]
+    df_participant <- df_all[df_all$participant == participant_code, ]
     form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
     form <- as.formula(form)
     mod <- lme_first_order_model(form, df_participant)
-    mod <- tidy(mod) %>%
-      mutate(participant = participant, component = component)
-    df_first_order_beta <- rbind(df_first_order_beta, mod)
+    mod_out <- tidy(mod) %>%
+      mutate(participant = participant_code, component = component)
+    df_first_order_beta <- rbind(df_first_order_beta, mod_out)
   }
 }
-
-write.table(df_first_order_beta, file="summaries/first-order-beta.csv")
+write.table(df_first_order_beta, file="summaries/first-order-beta.csv", 
+            sep=";", row.names = FALSE)
