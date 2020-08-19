@@ -1,0 +1,131 @@
+---
+title: "manuscript-results"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "18/08/2020"
+output: html_document
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(knitr)
+
+df_mixed_beta <- read.table("../summaries/second-order-mixed-beta.csv", header=TRUE, sep=";")
+df_mixed_contrast <- read.table("../summaries/second-order-mixed-contrasts.csv", header=TRUE, sep=";")
+df_first_order_beta <- read.table("../summaries/first-order-beta.csv", header=TRUE, sep=";")
+```
+
+```{r, echo=FALSE}
+p_to_stars <- function(values){
+  func <- function(value){
+    if(value >= 0.05) return("")
+    if(value < 0.001) return("***")
+    if(value < 0.01) return("**")
+    if(value < 0.05) return("*")
+  }
+  return(sapply(values, func))
+}
+```
+
+### Individual beta coefficients 
+
+These are coefficients and marked for significance. The p.values have been adjusted using *fdr* correction.
+
+\* < 0.05
+\*\* < 0.01
+\*\*\* < 0.001
+
+```{r, echo=FALSE}
+df_mixed_beta %>%
+  mutate(p.value = p.adjust(p.value, method = "fdr")) %>%
+  mutate(stat=paste(round(estimate, 4), p_to_stars(p.value))) %>%
+  select(component, term, stat) %>%
+  pivot_wider(names_from=term, values_from=stat) %>%
+  kable()
+```
+
+### Contrasts
+
+Here are contrasts and their significance. 
+
+The + signifies positive finding (e.g. movement > 0 or ABSOLUTE beta in trial is larger than in learn) and - negative contrast (e.g. movement < 0 , learn has larger absolute beta). These are JUST FOR GUIDANCE. Each specific beta coefficient should be investigated to get a better idea about hte relationship.
+
+
+All contrasts have been corrected for multiple comparisons using FDR corretion 
+
+```{r, echo=FALSE}
+binding_table <- df_mixed_beta %>%
+  select(component, term, estimate) %>%
+  pivot_wider(names_from=term, values_from=estimate)
+
+df_mixed_contrast %>%
+  mutate(pvalues = p.adjust(pvalues, method = "fdr")) %>%
+  mutate(stat = p_to_stars(pvalues)) %>%
+  select(stat, contrast, component) %>%
+  pivot_wider(names_from = contrast, values_from=stat) %>%
+  right_join(binding_table, by="component") %>%
+  mutate(`movement.trial > movement.learn` =
+           paste(ifelse(abs(moving.trial) > abs(moving.learn), "+", "-"), 
+                 `movement.trial > movement.learn`),
+         `pointing.trial > pointing.learn` =
+           paste(ifelse(abs(pointing.trial) > abs(pointing.learn), "+", "-"), 
+                 `pointing.trial > pointing.learn`),
+         `movement > 0` =
+           paste(ifelse((moving.trial + moving.learn) > 0, "+", "-"), 
+                 `movement > 0`),
+         `pointing > 0` =
+           paste(ifelse((pointing.trial + pointing.learn) > 0, "+", "-"), 
+                 `pointing > 0`)
+         ) %>%
+  select(1:5) %>%
+  kable()
+```
+
+## First order stats
+
+First order statistics - e.g. modeling each person individually and then calculating average values of each beta coefficient. 
+
+### Average betas
+
+The significance marking is from wilcox test comparing series of beta coefficients from all participants against 0. Corrected with FDR.
+
+```{r,echo=FALSE}
+df_first_order_beta %>%
+  group_by(term, component) %>%
+  summarise(mean = mean(estimate), p.value = wilcox.test(estimate, mu=0)$p.value) %>%
+  mutate(p.value = p.adjust(p.value, method="fdr"),
+         p.value = paste(round(mean,3), p_to_stars(p.value))) %>%
+  select(-mean) %>%
+  pivot_wider(names_from = term, values_from=p.value) %>%
+  kable()
+```
+### Contrasts
+These are "contrasts" for wilcox paired comparisons for movement trial > movement learn and non paired one sample wilcox for (movement learn + movement trial) compared against 0.
+
+The + signifies positive finding (e.g. movement > 0 or ABSOLUTE beta in trial is larger than in learn) and - negative contrast (e.g. movement < 0 , learn has larger absolute beta). These are JUST FOR GUIDANCE. Each specific beta coefficient should be investigated to get a better idea about hte relationship.
+
+All contrasts have been corrected for multiple comparisons using FDR corretion 
+
+```{r, echo=FALSE}
+df_first_order_beta %>%
+  select(term, estimate, participant, component) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  group_by(component) %>%
+  summarise(p_mov_trial_learn = wilcox.test(moving.trial, moving.learn, paired=TRUE)$p.value,
+            sign_mov_trial = sum(abs(moving.trial) - abs(moving.learn))>0,
+            p_mov_0 = wilcox.test(moving.trial+moving.learn, mu=0)$p.value,
+            sign_mov_0 = sum(moving.trial + moving.learn)>0,
+            p_point_trial_learn = wilcox.test(pointing.trial, pointing.learn, paired=TRUE)$p.value,
+            sign_point_trial = sum(abs(pointing.trial) - abs(pointing.learn)) > 0,
+            p_point_0 = wilcox.test(pointing.trial + pointing.learn, mu=0)$p.value,
+            sign_point_0 = sum(pointing.trial + pointing.learn)>0) %>%
+  pivot_longer(cols=starts_with("p")) %>%
+  mutate(value = p.adjust(value, method="fdr"),
+         value = p_to_stars(value)) %>%
+  pivot_wider(names_from = name, values_from=value) %>%
+  mutate(`movement trial > movement learn` = paste(ifelse(sign_mov_trial, "+", "-"), p_mov_trial_learn),
+         `movement > 0` = paste(ifelse(sign_mov_0, "+", "-"), p_mov_0),
+         `pointing trial > pointing learn` = paste(ifelse(sign_point_trial, "+", "-"), p_point_trial_learn),
+         `pointing > 0` = paste(ifelse(sign_point_0, "+", "-"), p_point_0)) %>%
+  select(component, contains(">")) %>%
+  kable()
+```
