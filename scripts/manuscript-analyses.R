@@ -84,3 +84,29 @@ for(component in component_names){
 }
 write.table(df_first_order_beta, file="summaries/first-order-beta.csv", 
             sep=";", row.names = FALSE)
+
+## GLM first level output ----
+glm_first_order_model <- function(formula, dat){
+  mod <- gls(formula,
+             method="REML",
+             data = dat)
+  return(mod)
+}
+
+df_glm_first_order_beta <- data.frame()
+for(component in component_names) {
+  message("\nCalculating GLM for component ", component)
+  for(participant_code in participant_names){
+    cat(".")
+    df_participant <- df_all[df_all$participant == participant_code, ]
+    form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
+    form <- as.formula(form)
+    mod <- glm_first_order_model(form, df_participant)
+    mod_out <- tidy(mod) %>%
+      mutate(participant = participant_code, component = component)
+    df_glm_first_order_beta <- rbind(df_glm_first_order_beta, mod_out)
+  }
+}
+
+write.table(df_glm_first_order_beta, file="summaries/glm-first-order-beta.csv", 
+            sep=";", row.names = FALSE)
