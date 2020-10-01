@@ -4,6 +4,19 @@ Data are loaded for each participant. Then pulses are added and data resaved so 
 
 R loads the behavioural data and outputs events with information about fMRI time. Matlab code takes these events and models the hrf expected component timeseries. The final component timeseries can then be modeled as a function of the event hrfs to asses how much they correspond.
 
+## Project structure
+folders written in *italics* are not commited, but generated as the scripts run
+
+- data: contains all raw data from both fMRI 
+- *exports*: contains preprocessed files as exported by R or matlab functions. Used in analysis
+- fMRI: Matlab code to model the HRF responses on given events
+- functions: R helper functions
+- images: 
+- *models*: saved mixed models, as running them takes too long
+- reports: knitr and dash reports 
+- scripts: preprocessing and exporting R scripts
+- *summaries*: ouput of analytical scripts. Used in reports
+
 ## Data description
 
 Unity data can be of three different "classes"
