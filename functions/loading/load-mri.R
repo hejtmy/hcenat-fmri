@@ -17,7 +17,7 @@ load_mri <- function(folder, names_file){
   components <- list()
   for(f in component_files){
     component_name <- gsub(ptr, replacement = "\\1", basename(f))
-    df <- read.table(f, header=F, sep=",")
+    df <- read.table(f, header = FALSE, sep = ",")
     colnames(df) <- participant_codes
     components[[component_name]] <- df
   }

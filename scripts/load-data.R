@@ -17,11 +17,17 @@ df_behavioral <- read.table(file.path(RELATIVE_DIR, "exports", "participant-perf
 
 # Load components -----
 message("Loading components")
-folder <- file.path(DATA_DIR, "../MRI-data-tomecek/filtered")
+mri_folder <- file.path(DATA_DIR, "../MRI-data-tomecek/raw")
 names_file <- file.path(DATA_DIR, "../MRI-data-tomecek/subs_20190830_1422.txt")
-components <- load_mri(folder, names_file)
+components <- load_mri(mri_folder, names_file)
 components <- rename_mri_participants(components, df_preprocessing)
 fmri <- restructure_mri(components)
+
+## All components
+components_all <- load_mri("exports/components/", names_file)
+components_all <- rename_mri_participants(components_all, df_preprocessing)
+fmri_all <- restructure_mri(components_all)
+
 
 component_names <- names(components)
 good_participants <- get_good_participant_ids(df_preprocessing, "unity")
@@ -80,6 +86,6 @@ df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by=c("participant" = "ID", "pulse_id"))
 df_all <- df_all %>% arrange(participant, pulse_id)
 
-rm(code, codes, component_names, folder, hrf_folder,
+rm(code, codes, component_names, mri_folder, hrf_folder,
    hrf, name, names_file, f, hrf_names, speed_folder, rotation_folder,
    rotation)
