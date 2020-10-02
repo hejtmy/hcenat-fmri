@@ -256,7 +256,7 @@ for(name in good_participants){
   out$pulse_id <- 1:400
   df_hrfs <- rbind(df_hrfs, out)
 }
-all_data <- merge(df_hrfs, fmri, by=c("participant", "pulse_id"))
+all_data <- merge(df_hrfs, fmri, by = c("participant", "pulse_id"))
 
 summary(lm(filt_dmn_52 ~ moving.learn + moving.trial, data=all_data))
 
@@ -271,4 +271,7 @@ l <- lmerTest::lmer(filt_dmn_2 ~ moving.learn + moving.trial + (moving|participa
 summary(l)
 
 
-
+## Checking components -----
+raw_comp <- fmri$raw_cen_11[fmri$participant == "HCE_K_4"]
+exp_comp <- fmri_all$component_11.csv[fmri_all$participant == "HCE_K_4"]
+data.frame(raw_comp, exp_comp, raw_comp == exp_comp)
