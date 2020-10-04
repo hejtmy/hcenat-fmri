@@ -25,6 +25,9 @@ fmri <- restructure_mri(components)
 
 ## All components
 components_all <- load_mri("exports/components/", names_file)
+names_clean <- sapply(names(components_all),
+                      function(x) {gsub(".csv", "", x)}, USE.NAMES = FALSE)
+names(components_all) <- names_clean
 components_all <- rename_mri_participants(components_all, df_preprocessing)
 fmri_all <- restructure_mri(components_all)
 
