@@ -5,6 +5,7 @@ library(tidyverse)
 # Preparing data ------
 sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+COMPONENT_TYPE <- "filtered"
 RELATIVE_DIR <- "."
 
 source("scripts/load-data.R")
@@ -12,6 +13,9 @@ df_all <- merge(df_hrfs, df_fmri_all, by = c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
 df_all <- df_all %>% 
   arrange(participant, pulse_id)
+
+components <- components_all
+df_analysis <- df_all
 
 component_names <- names(components)
 participant_names <- unique(df_analysis$participant)
@@ -24,7 +28,7 @@ contrast_output <- function(model, contrast){
 }
 
 ## Setting parameters -------
-df_analysis <- df_all
+
 contrast <- matrix(c(-1,1,0,0,1,1,0,0,0,0,-1,1,0,0,1,1), 4, 4)
 rownames(contrast) <- c("movement.trial > movement.learn", "movement > 0", 
                         "pointing.trial > pointing.learn", "pointing > 0")
