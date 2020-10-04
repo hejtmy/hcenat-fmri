@@ -7,10 +7,14 @@ library(nlme)
 library(tidyverse)
 
 sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
-data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+COMPONENT_TYPE <- "filtered"
 img_path <- "images/megamap5.png"
 
 source("scripts/load-data.R")
+df_all <- merge(df_hrfs, df_fmri, by = c("pulse_id", "participant"))
+df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
+df_all <- df_all %>% arrange(participant, pulse_id)
 
 ## Regression analysis 
 name <- good_participants[1]
@@ -272,6 +276,11 @@ summary(l)
 
 
 ## Checking components -----
-raw_comp <- fmri$raw_cen_11[fmri$participant == "HCE_K_4"]
-exp_comp <- fmri_all$component_11.csv[fmri_all$participant == "HCE_K_4"]
+raw_comp <- fmri$filt_cen_23[fmri$participant == "HCE_K_8"]
+exp_comp <- fmri_all$filt_component_23[fmri_all$participant == "HCE_K_8"]
 data.frame(raw_comp, exp_comp, raw_comp == exp_comp)
+
+## Checking if raw and filtered are the same
+filtered_comp <- fmri$filt_cen_11[fmri$participant == "HCE_K_8"]
+exported_comp <- fmri_all$filt_component_11[fmri_all$participant == "HCE_K_8"]
+cor(filtered_comp, exported_comp)
