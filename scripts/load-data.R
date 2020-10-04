@@ -17,22 +17,29 @@ df_behavioral <- read.table(file.path(RELATIVE_DIR, "exports", "participant-perf
 
 # Load components -----
 message("Loading components")
-mri_folder <- file.path(DATA_DIR, "../MRI-data-tomecek/raw")
-names_file <- file.path(DATA_DIR, "../MRI-data-tomecek/subs_20190830_1422.txt")
+mri_folder <- file.path(DATA_DIR, "..", "MRI-data-tomecek", COMPONENT_TYPE)
+names_file <- file.path(DATA_DIR, "..", "MRI-data-tomecek", "subs_20190830_1422.txt")
 components <- load_mri(mri_folder, names_file)
 components <- rename_mri_participants(components, df_preprocessing)
 fmri <- restructure_mri(components)
 
+## Creating component names
+component_names <- names(components)
+ptr <- "^.*?_(.*?)_([0-9]*)"
+df_component_localization <- data.frame(
+  component = as.numeric(gsub(ptr, "\\2", component_names)),
+  type = gsub(ptr, "\\1", component_names))
+remove(ptr, component_names, mri_folder)
+
 ## All components
-components_all <- load_mri("exports/components/", names_file)
+mri_folder <- file.path("exports", "components",  COMPONENT_TYPE)
+components_all <- load_mri(mri_folder, names_file)
 names_clean <- sapply(names(components_all),
                       function(x) {gsub(".csv", "", x)}, USE.NAMES = FALSE)
 names(components_all) <- names_clean
 components_all <- rename_mri_participants(components_all, df_preprocessing)
 fmri_all <- restructure_mri(components_all)
 
-
-component_names <- names(components)
 good_participants <- get_good_participant_ids(df_preprocessing, "unity")
 
 # only selects those participants who have components
@@ -89,6 +96,5 @@ df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by=c("participant" = "ID", "pulse_id"))
 df_all <- df_all %>% arrange(participant, pulse_id)
 
-rm(code, codes, component_names, mri_folder, hrf_folder,
-   hrf, name, names_file, f, hrf_names, speed_folder, rotation_folder,
-   rotation)
+rm(code, codes, mri_folder, hrf_folder, hrf, name, names_file, 
+   f, hrf_names, speed_folder, rotation_folder, rotation)
