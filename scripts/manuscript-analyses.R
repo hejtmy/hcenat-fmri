@@ -2,18 +2,19 @@ library(nlme)
 library(broom.mixed)
 library(tidyverse)
 
+# Preparing data ------
 sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 RELATIVE_DIR <- "."
 
 source("scripts/load-data.R")
-df_all <- df_all %>% arrange(participant, pulse_id)
+df_all <- merge(df_hrfs, df_fmri_all, by = c("pulse_id", "participant"))
+df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
+df_all <- df_all %>% 
+  arrange(participant, pulse_id)
 
 component_names <- names(components)
-participant_names <- unique(df_all$participant)
-contrast <- matrix(c(-1,1,0,0,1,1,0,0,0,0,-1,1,0,0,1,1), 4, 4)
-rownames(contrast) <- c("movement.trial > movement.learn", "movement > 0", 
-                        "pointing.trial > pointing.learn", "pointing > 0")
+participant_names <- unique(df_analysis$participant)
 
 contrast_output <- function(model, contrast){
   out <- multcomp::glht(model, linfct=contrast)
@@ -22,6 +23,11 @@ contrast_output <- function(model, contrast){
   return(out)
 }
 
+## Setting parameters -------
+df_analysis <- df_all
+contrast <- matrix(c(-1,1,0,0,1,1,0,0,0,0,-1,1,0,0,1,1), 4, 4)
+rownames(contrast) <- c("movement.trial > movement.learn", "movement > 0", 
+                        "pointing.trial > pointing.learn", "pointing > 0")
 autocorrelation_structure <- corAR1(0.3, form = ~1|participant)
 autocorrelation_structure_first <- corAR1(0.3, form = ~1)
 
@@ -30,7 +36,7 @@ lme_second_order_model <- function(formula){
   mod <- lme(formula,
       random = ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial | participant,
       method="REML",
-      data = df_all,
+      data = df_analysis,
       control = nlme::lmeControl(rel.tol=1e-6),
       correlation = autocorrelation_structure)
   return(mod)
@@ -58,7 +64,7 @@ write.table(df_mixed_beta, file = "summaries/second-order-mixed-beta.csv",
             sep=";", row.names = FALSE)
 write.table(df_mixed_contrast, file = "summaries/second-order-mixed-contrasts.csv",
             sep = ";", row.names = FALSE)
-  
+
 ## Mixed model first level output -------
 lme_first_order_model <- function(formula, dat){
   mod <- gls(formula,
@@ -73,7 +79,7 @@ for(component in component_names){
   message("\nCalculating for component ", component)
   for(participant_code in participant_names){
     cat(".")
-    df_participant <- df_all[df_all$participant == participant_code, ]
+    df_participant <- df_analysis[df_analysis$participant == participant_code, ]
     form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
     form <- as.formula(form)
     mod <- lme_first_order_model(form, df_participant)
@@ -98,7 +104,7 @@ for(component in component_names) {
   message("\nCalculating GLM for component ", component)
   for(participant_code in participant_names){
     cat(".")
-    df_participant <- df_all[df_all$participant == participant_code, ]
+    df_participant <- df_analysis[df_analysis$participant == participant_code, ]
     form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
     form <- as.formula(form)
     mod <- glm_first_order_model(form, df_participant)

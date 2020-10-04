@@ -1,3 +1,12 @@
+#' The output of this script are:
+#' - df_hrfs
+#' df_pulses
+#' df_preprocessing
+#' df_fmri
+#' df_fmri_all
+#' df_behavioral
+#' df_component_localization
+
 options(gargle_oauth_email = "hejtmy@gmail.com")
 
 if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- "."
@@ -21,7 +30,7 @@ mri_folder <- file.path(DATA_DIR, "..", "MRI-data-tomecek", COMPONENT_TYPE)
 names_file <- file.path(DATA_DIR, "..", "MRI-data-tomecek", "subs_20190830_1422.txt")
 components <- load_mri(mri_folder, names_file)
 components <- rename_mri_participants(components, df_preprocessing)
-fmri <- restructure_mri(components)
+df_fmri <- restructure_mri(components)
 
 ## Creating component names
 component_names <- names(components)
@@ -38,7 +47,7 @@ names_clean <- sapply(names(components_all),
                       function(x) {gsub(".csv", "", x)}, USE.NAMES = FALSE)
 names(components_all) <- names_clean
 components_all <- rename_mri_participants(components_all, df_preprocessing)
-fmri_all <- restructure_mri(components_all)
+df_fmri_all <- restructure_mri(components_all)
 
 good_participants <- get_good_participant_ids(df_preprocessing, "unity")
 
@@ -91,10 +100,9 @@ restructure_hrfs <- function(hrfs){
 }
 
 df_hrfs <- restructure_hrfs(hrfs)
-df_mri <- restructure_mri(components)
-df_all <- merge(df_hrfs, df_mri, by=c("pulse_id", "participant"))
-df_all <- left_join(df_all, df_pulses, by=c("participant" = "ID", "pulse_id"))
+df_all <- merge(df_hrfs, df_fmri, by = c("pulse_id", "participant"))
+df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
 df_all <- df_all %>% arrange(participant, pulse_id)
 
-rm(code, codes, mri_folder, hrf_folder, hrf, name, names_file, 
+rm(code, codes, mri_folder, hrf_folder, hrf, name, names_file,
    f, hrf_names, speed_folder, rotation_folder, rotation)
