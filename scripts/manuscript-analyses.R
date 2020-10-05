@@ -36,6 +36,7 @@ autocorrelation_structure <- corAR1(0.3, form = ~1|participant)
 autocorrelation_structure_first <- corAR1(0.3, form = ~1)
 
 ## Mixed model second level output ------
+message("Starting second level analysis")
 lme_second_order_model <- function(formula){
   mod <- lme(formula,
       random = ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial | participant,
@@ -70,6 +71,7 @@ write.table(df_mixed_contrast, file = "summaries/second-order-mixed-contrasts.cs
             sep = ";", row.names = FALSE)
 
 ## Mixed model first level output -------
+message("calculating first level analyses")
 lme_first_order_model <- function(formula, dat){
   mod <- gls(formula,
       method="REML",
@@ -96,6 +98,7 @@ write.table(df_first_order_beta, file="summaries/first-order-beta.csv",
             sep=";", row.names = FALSE)
 
 ## GLM first level output ----
+message("calculating GLMs")
 glm_first_order_model <- function(formula, dat){
   mod <- gls(formula,
              method="REML",
@@ -118,5 +121,9 @@ for(component in component_names) {
   }
 }
 
-write.table(df_glm_first_order_beta, file="summaries/glm-first-order-beta.csv", 
+write.table(df_glm_first_order_beta, file = "summaries/glm-first-order-beta.csv", 
+            sep=";", row.names = FALSE)
+
+## Other exports ------
+write.table(df_component_localization, file = "summaries/component-localization.csv", 
             sep=";", row.names = FALSE)

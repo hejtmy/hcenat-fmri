@@ -13,6 +13,8 @@ df_mixed_beta <- read.table("../summaries/second-order-mixed-beta.csv", header=T
 df_mixed_contrast <- read.table("../summaries/second-order-mixed-contrasts.csv", header=TRUE, sep=";")
 df_first_order_beta <- read.table("../summaries/first-order-beta.csv", header=TRUE, sep=";")
 df_glm_first_order_beta <- read.table("../summaries/glm-first-order-beta.csv", header=TRUE, sep=";")
+
+COMPARISON_CORRECTION <- "fdr"
 ```
 
 ```{r, echo=FALSE}
@@ -37,7 +39,7 @@ These are coefficients and marked for significance. The p.values have been adjus
 
 ```{r, echo=FALSE}
 df_beta_mixed_second <- df_mixed_beta %>%
-  mutate(p.value = p.adjust(p.value, method = "fdr")) %>%
+  mutate(p.value = p.adjust(p.value, method = COMPARISON_CORRECTION)) %>%
   mutate(stat=paste(round(estimate, 4), p_to_stars(p.value))) %>%
   select(component, term, stat) %>%
   pivot_wider(names_from=term, values_from=stat)
@@ -57,10 +59,10 @@ All contrasts have been corrected for multiple comparisons using FDR correction
 ```{r, echo=FALSE}
 binding_table <- df_mixed_beta %>%
   select(component, term, estimate) %>%
-  pivot_wider(names_from=term, values_from=estimate)
+  pivot_wider(names_from = term, values_from = estimate)
 
 df_contrasts_mixed_second <- df_mixed_contrast %>%
-  mutate(pvalues = p.adjust(pvalues, method = "fdr")) %>%
+  mutate(pvalues = p.adjust(pvalues, method = COMPARISON_CORRECTION)) %>%
   mutate(stat = p_to_stars(pvalues)) %>%
   select(stat, contrast, component) %>%
   pivot_wider(names_from = contrast, values_from=stat) %>%
@@ -97,8 +99,8 @@ df_avg_beta_mixed_first <- df_first_order_beta %>%
   group_by(term, component) %>%
   summarise(mean = mean(estimate), p.value = wilcox.test(estimate, mu=0)$p.value,
             .groups="drop") %>%
-  mutate(p.value = p.adjust(p.value, method="fdr"),
-         p.value = paste(round(mean,3), p_to_stars(p.value))) %>%
+  mutate(p.value = p.adjust(p.value, method = COMPARISON_CORRECTION),
+         p.value = paste(round(mean, 3), p_to_stars(p.value))) %>%
   select(-mean) %>%
   pivot_wider(names_from = term, values_from=p.value)
 
@@ -127,7 +129,7 @@ df_contrasts_mixed_first <- df_first_order_beta %>%
             sign_point_0 = sum(pointing.trial + pointing.learn) > 0,
             .groups="drop") %>%
   pivot_longer(cols=starts_with("p")) %>%
-  mutate(value = p.adjust(value, method = "fdr"),
+  mutate(value = p.adjust(value, method = COMPARISON_CORRECTION),
          value = p_to_stars(value)) %>%
   pivot_wider(names_from = name, values_from=value) %>%
   mutate(`movement.trial > movement.learn` = paste(ifelse(sign_mov_trial, "+", "-"), p_mov_trial_learn),
@@ -152,7 +154,7 @@ The significance marking is from wilcox test comparing series of beta coefficien
 df_avg_beta_glm_first <- df_glm_first_order_beta %>%
   group_by(term, component) %>%
   summarise(mean = mean(estimate), p.value = wilcox.test(estimate, mu=0)$p.value) %>%
-  mutate(p.value = p.adjust(p.value, method = "fdr"),
+  mutate(p.value = p.adjust(p.value, method = COMPARISON_CORRECTION),
          p.value = paste(round(mean,3), p_to_stars(p.value))) %>%
   select(-mean) %>%
   pivot_wider(names_from = term, values_from=p.value)
@@ -182,7 +184,7 @@ df_contrasts_glm_first <- df_glm_first_order_beta %>%
             sign_point_0 = sum(pointing.trial + pointing.learn)>0,
             .groups="drop") %>%
   pivot_longer(cols=starts_with("p")) %>%
-  mutate(value = p.adjust(value, method="fdr"),
+  mutate(value = p.adjust(value, method = COMPARISON_CORRECTION),
          value = p_to_stars(value)) %>%
   pivot_wider(names_from = name, values_from=value) %>%
   mutate(`movement.trial > movement.learn` = paste(ifelse(sign_mov_trial, "+", "-"), p_mov_trial_learn),
