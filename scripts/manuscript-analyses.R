@@ -20,15 +20,8 @@ df_analysis <- df_all
 component_names <- names(components)
 participant_names <- unique(df_analysis$participant)
 
-contrast_output <- function(model, contrast){
-  out <- multcomp::glht(model, linfct=contrast)
-  out <- as.data.frame(summary(out)$test[c('tstat', 'pvalues')])
-  out$contrast <- rownames(contrast)
-  return(out)
-}
-
 ## Setting parameters -------
-
+FIRST_ORDER_FORMULA <- " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial"
 contrast <- matrix(c(-1,1,0,0,1,1,0,0,0,0,-1,1,0,0,1,1), 4, 4)
 rownames(contrast) <- c("movement.trial > movement.learn", "movement > 0", 
                         "pointing.trial > pointing.learn", "pointing > 0")
@@ -50,7 +43,7 @@ df_mixed_beta <- data.frame()
 df_mixed_contrast <- data.frame()
 for(component in component_names){
   message("Calculating for component ", component)
-  form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
+  form <- paste0(component, FORMULA)
   form <- as.formula(form)
   mod <- lme_second_order_model(form)
   fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1"))
@@ -66,7 +59,7 @@ for(component in component_names){
   df_mixed_beta <- rbind(df_mixed_beta, mod_out)
 }
 write.table(df_mixed_beta, file = "summaries/second-order-mixed-beta.csv",
-            sep=";", row.names = FALSE)
+            sep = ";", row.names = FALSE)
 write.table(df_mixed_contrast, file = "summaries/second-order-mixed-contrasts.csv",
             sep = ";", row.names = FALSE)
 
@@ -86,7 +79,7 @@ for(component in component_names){
   for(participant_code in participant_names){
     cat(".")
     df_participant <- df_analysis[df_analysis$participant == participant_code, ]
-    form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
+    form <- paste0(component, FIRST_ORDER_FORMULA)
     form <- as.formula(form)
     mod <- lme_first_order_model(form, df_participant)
     mod_out <- tidy(mod) %>%
@@ -94,14 +87,14 @@ for(component in component_names){
     df_first_order_beta <- rbind(df_first_order_beta, mod_out)
   }
 }
-write.table(df_first_order_beta, file="summaries/first-order-beta.csv", 
-            sep=";", row.names = FALSE)
+write.table(df_first_order_beta, file = "summaries/first-order-beta.csv", 
+            sep = ";", row.names = FALSE)
 
 ## GLM first level output ----
 message("calculating GLMs")
 glm_first_order_model <- function(formula, dat){
   mod <- gls(formula,
-             method="REML",
+             method = "REML",
              data = dat)
   return(mod)
 }
@@ -112,7 +105,7 @@ for(component in component_names) {
   for(participant_code in participant_names){
     cat(".")
     df_participant <- df_analysis[df_analysis$participant == participant_code, ]
-    form <- paste0(component, " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial")
+    form <- paste0(component, FIRST_ORDER_FORMULA)
     form <- as.formula(form)
     mod <- glm_first_order_model(form, df_participant)
     mod_out <- tidy(mod) %>%
@@ -122,8 +115,8 @@ for(component in component_names) {
 }
 
 write.table(df_glm_first_order_beta, file = "summaries/glm-first-order-beta.csv", 
-            sep=";", row.names = FALSE)
+            sep = ";", row.names = FALSE)
 
 ## Other exports ------
 write.table(df_component_localization, file = "summaries/component-localization.csv", 
-            sep=";", row.names = FALSE)
+            sep = ";", row.names = FALSE)

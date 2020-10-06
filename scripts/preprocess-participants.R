@@ -1,13 +1,14 @@
 library(data.table)
 library(navr)
 library(dplyr)
-sapply(list.files("functions", full.names = T, recursive = T), source)
+sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 
 df_preprocessing <- load_participant_preprocessing_status()
 
 ## Unity loading -----
-participants <- load_participants(DATA_DIR, df_preprocessing = df_preprocessing, sessions = 1)
+participants <- load_participants(DATA_DIR, df_preprocessing = df_preprocessing,
+                                  sessions = 1)
 participants_all <- add_pulses.participants(participants, clean = FALSE)
 participants <- add_pulses.participants(participants, clean = TRUE)
 
