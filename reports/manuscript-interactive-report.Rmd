@@ -35,6 +35,8 @@ df_beta <- df_beta %>%
   mutate(p.value = p.adjust(p.value, method="fdr"),
          component = factor(as.numeric(gsub("filt_component_", "", component))))
 
+levels(df_beta$component) <- paste0("component_", levels(df_beta$component))
+
 df_beta <- df_beta %>%
   group_by(term, component) %>%
   summarise(component_mean = mean(estimate), 
@@ -54,12 +56,13 @@ df_beta <- df_beta %>%
 #### Overview
 Uses first order beta coefficients
 
-Row
+Row {data-height=600}
 ---------------------------
 
 ### All components
 ```{r}
 shared_beta <- SharedData$new(df_beta)
+shared_beta2 <- SharedData$new(df_beta)
 ```
 
 ```{r}
@@ -68,18 +71,64 @@ selection_widget <- bscols(
   filter_select("event", "Event", shared_beta, ~term, multiple = FALSE)
 )
 selection_widget
-plot_ly(shared_beta, x = ~component, y= ~estimate, color=~component_sig) %>%
-  add_trace(type="box", hoverinfo = "x+y", hovertemplate = "%{y}",
-            showlegend = TRUE, boxmean = TRUE, boxpoints = "all", 
-            jitter = 1, boxpoints = TRUE, hoveron="boxes") %>%
-  layout(yaxis=list(range=c(-1.2,1.2)))
+plot_ly(shared_beta, x = ~component, y = ~estimate, color = ~component_sig) %>%
+  add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE, boxmean = TRUE,
+            boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
+  layout(height = 500, yaxis=list(range=c(-1.2,1.2)))
 ```
 
 
-Row
+Row {data-height=600}
 ---------------------------------
 ### new text
 
 ```{r}
-
+selection_widget2 <- bscols(
+  widths = 12,
+  filter_select("component", "Component", shared_beta2, 
+                ~component, multiple = FALSE)
+)
+selection_widget2
+shared_beta2 %>%
+  plot_ly(x=~term, y=~estimate, color=~component_sig) %>%
+    add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE,
+              boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
+  layout(autosize = TRUE, height = 400,
+         xaxis = list(autorange = TRUE))
 ```
+
+### Component
+
+```{r, results='asis'}
+knitr::raw_html('
+    <div class="slidecontainer">
+  <input type="range" min="1" max="58" value="1" class="slider-square" id="component-slider">
+</div>
+<div id="id-component">
+
+</div>
+<div id="image-swap"></div>
+<script>
+var slider = document.getElementById("component-slider");
+var output = document.getElementById("id-component");
+output.innerHTML = slider.value; // Display the default slider value
+
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+  output.innerHTML = this.value;
+  setImage(this.value);
+}
+function setImage(value){
+    var div = document.getElementById("image-swap");
+    div.innerHTML =  "";
+    div.appendChild(createImage(value));
+}
+function createImage(value){
+    let img = document.createElement("img"); 
+    image_pth = "img/component_" + value + ".png";
+	img.src = image_pth;
+    return(img);
+}
+</script>')
+```
+

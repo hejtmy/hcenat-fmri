@@ -97,7 +97,8 @@ The significance marking is from wilcox test comparing series of beta coefficien
 ```{r,echo=FALSE}
 df_avg_beta_mixed_first <- df_first_order_beta %>%
   group_by(term, component) %>%
-  summarise(mean = mean(estimate), p.value = wilcox.test(estimate, mu=0)$p.value,
+  summarise(mean = mean(estimate),
+            p.value = wilcox.test(estimate, mu=0)$p.value,
             .groups="drop") %>%
   mutate(p.value = p.adjust(p.value, method = COMPARISON_CORRECTION),
          p.value = paste(round(mean, 3), p_to_stars(p.value))) %>%
