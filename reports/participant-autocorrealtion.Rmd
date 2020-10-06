@@ -1,0 +1,62 @@
+---
+title: "autocorrelation"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "06/10/2020"
+output: html_document
+---
+
+## Checking component correlation between participnts
+
+```{r}
+library(tidyverse)
+library(corrplot)
+
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+RELATIVE_DIR <- ".."
+
+sapply(list.files("../functions", full.names = TRUE, recursive = TRUE), source)
+COMPONENT_TYPE <- "filtered"
+source("../scripts/load-data.R")
+df_analysis <- df_fmri_all
+```
+## Single compoment visualisation
+
+```{r}
+out <- df_analysis %>%
+  select(filt_component_33, participant, pulse_id) %>%
+  pivot_wider(id_cols = c(pulse_id, participant), names_from = participant, 
+              values_from = filt_component_33)
+out_cor <- cor(out[, -1])
+as.data.frame(out_cor) %>%
+  rownames_to_column("participant") %>%
+  pivot_longer(cols = -participant, names_to = "participant2") %>%
+  ggplot(aes(participant, participant2, fill = value, alpha = value)) + 
+  geom_tile() + labs(x = "", title = "Correlation of compoment 33 between subjects",
+                     fill = "correlation", y = "") +
+  guides(alpha = FALSE)
+```
+
+The average correlation of the component 33 between subjects was `r mean(out_cor[out_cor != 1])`.
+
+```{r}
+components <- colnames(df_analysis)
+components <- components[grepl("component", components)]
+df <- data.frame()
+for(component in components){
+  out <- df_analysis %>%
+    select(any_of(component), participant, pulse_id) %>%
+    pivot_wider(id_cols = c(pulse_id, participant), names_from = participant, 
+                values_from = all_of(component))
+  out_cor <- cor(out[, -1])
+  avg <- mean(out_cor[out_cor != 1])
+  res <- list(component = component, avg_cor = avg)
+  df <- rbind(df, res)
+}
+```
+
+```{r}
+ggplot(df, aes(avg_cor)) + geom_histogram(binwidth = 0.01) + 
+  labs(x = "Average correlation", title = "Average correlations between subjects for all components")
+```
+
+Overall, components do not seem to be correlated among each other between subjects, suggesting that they are paradigm driven.
