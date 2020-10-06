@@ -1,0 +1,85 @@
+---
+title: "Interactive report of the beta coefficients"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "25/03/2020"
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                        encoding=encoding, 
+                        output_file=file.path(dirname(inputFile),
+                        output_dir = "../docs", 'manuscript-interactive-report.html'))})
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: rows
+---
+```{r setup, message=FALSE, warning=FALSE, results='hide', echo=FALSE}
+library(plotly)
+library(crosstalk)
+library(knitr)
+library(tidyverse)
+
+df_beta <- read.table("../summaries/first-order-beta.csv",
+                                  header = TRUE, sep = ";")
+
+p_to_stars <- function(values){
+  func <- function(value){
+    if(value >= 0.05) return("-")
+    if(value < 0.001) return("***")
+    if(value < 0.01) return("**")
+    if(value < 0.05) return("*")
+  }
+  return(sapply(values, func))
+}
+
+df_beta <- df_beta %>%
+  mutate(p.value = p.adjust(p.value, method="fdr"),
+         component = factor(as.numeric(gsub("filt_component_", "", component))))
+
+df_beta <- df_beta %>%
+  group_by(term, component) %>%
+  summarise(component_mean = mean(estimate), 
+            component_p.value = wilcox.test(estimate, mu=0)$p.value,
+            .groups="drop") %>%
+  mutate(component_p.value = p.adjust(component_p.value, method = "fdr"),
+         component_sig = p_to_stars(component_p.value)) %>%
+  right_join(df_beta, by=c("term", "component"))
+```
+
+```{r adding p-values}
+
+```
+
+-------------------------------
+
+#### Overview
+Uses first order beta coefficients
+
+Row
+---------------------------
+
+### All components
+```{r}
+shared_beta <- SharedData$new(df_beta)
+```
+
+```{r}
+selection_widget <- bscols(
+  widths = 12,
+  filter_select("event", "Event", shared_beta, ~term, multiple = FALSE)
+)
+selection_widget
+plot_ly(shared_beta, x = ~component, y= ~estimate, color=~component_sig) %>%
+  add_trace(type="box", hoverinfo = "x+y", hovertemplate = "%{y}",
+            showlegend = TRUE, boxmean = TRUE, boxpoints = "all", 
+            jitter = 1, boxpoints = TRUE, hoveron="boxes") %>%
+  layout(yaxis=list(range=c(-1.2,1.2)))
+```
+
+
+Row
+---------------------------------
+### new text
+
+```{r}
+
+```
