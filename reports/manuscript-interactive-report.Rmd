@@ -18,9 +18,6 @@ library(crosstalk)
 library(knitr)
 library(tidyverse)
 
-df_beta <- read.table("../summaries/first-order-beta.csv",
-                                  header = TRUE, sep = ";")
-
 p_to_stars <- function(values){
   func <- function(value){
     if(value >= 0.05) return("-")
@@ -31,26 +28,74 @@ p_to_stars <- function(values){
   return(sapply(values, func))
 }
 
+df_beta <- read.table("../summaries/first-order-beta.csv",
+                                  header = TRUE, sep = ";")
+
 df_beta <- df_beta %>%
-  mutate(p.value = p.adjust(p.value, method="fdr"),
-         component = factor(as.numeric(gsub("filt_component_", "", component))))
+  select(-c(p.value, std.error, statistic)) %>%
+  mutate(component = factor(as.numeric(gsub("filt_component_", "", component))))
 
 levels(df_beta$component) <- paste0("component_", levels(df_beta$component))
 
 df_beta <- df_beta %>%
   group_by(term, component) %>%
-  summarise(component_mean = mean(estimate), 
-            component_p.value = wilcox.test(estimate, mu=0)$p.value,
+  summarise(avg = mean(estimate), 
+            p_value = wilcox.test(estimate, mu = 0)$p.value,
             .groups="drop") %>%
-  mutate(component_p.value = p.adjust(component_p.value, method = "fdr"),
-         component_sig = p_to_stars(component_p.value)) %>%
+  mutate(p_value = p.adjust(p_value, method = "fdr"),
+         sig = p_to_stars(p_value)) %>%
   right_join(df_beta, by=c("term", "component"))
+
+## Contrasts ---
+df_cont <- df_beta %>%
+  select(term, estimate, participant, component) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  mutate(cont_mov_0 = moving.trial + moving.learn,
+         cont_mov_trial_learn = moving.trial - moving.learn,
+         cont_point_trial_learn = pointing.trial - pointing.learn,
+         cont_point_0 = pointing.trial + pointing.learn) %>%
+  pivot_longer(cols = -c(participant, component),
+               names_to = "term",
+               values_to = "estimate")
+
+out <- df_cont %>%
+  filter(grepl("0", term)) %>%
+  group_by(term, component) %>%
+  summarise(avg = mean(estimate), 
+            p_value = wilcox.test(estimate, mu = 0)$p.value,
+            .groups="drop")
+
+out2 <- df_cont %>%
+  pivot_wider(names_from = term, values_from=estimate) %>%
+  group_by(component) %>%
+  summarise(cont_mov_trial_learn = wilcox.test(moving.trial, moving.learn, paired = TRUE)$p.value,
+            cont_point_trial_learn = wilcox.test(pointing.trial, pointing.learn, paired = TRUE)$p.value,
+          .groups="drop") %>%
+  pivot_longer(cols = -component, names_to="term", values_to = "p_value")
+
+out2 <- df_cont %>%
+  filter(grepl("trial_learn", term)) %>%
+  group_by(term, component) %>%
+  summarise(avg = mean(estimate)) %>%
+  right_join(out2, by=c("term", "component"))
+
+out3 <- rbind(out, out2) %>%
+  mutate(p_value = p.adjust(p_value, method = "fdr"),
+         sig = p_to_stars(p_value))
+
+df_cont <- df_cont %>%
+  right_join(out3, by=c("term", "component"))
+
+df_beta <- rbind(df_beta, df_cont)
 ```
 
-```{r adding p-values}
+```{r eval =FALSE}
 
+mutate(`movement.trial > movement.learn` = paste(ifelse(sign_mov_trial, "+", "-"), p_mov_trial_learn),
+       `movement > 0` = paste(ifelse(sign_mov_0, "+", "-"), p_mov_0),
+       `pointing.trial > pointing.learn` = paste(ifelse(sign_point_trial, "+", "-"), p_point_trial_learn),
+       `pointing > 0` = paste(ifelse(sign_point_0, "+", "-"), p_point_0))
 ```
-
 -------------------------------
 
 #### Overview
@@ -71,14 +116,14 @@ selection_widget <- bscols(
   filter_select("event", "Event", shared_beta, ~term, multiple = FALSE)
 )
 selection_widget
-plot_ly(shared_beta, x = ~component, y = ~estimate, color = ~component_sig) %>%
+plot_ly(shared_beta, x = ~component, y = ~estimate, color = ~sig) %>%
   add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE, boxmean = TRUE,
             boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
   layout(height = 500, yaxis=list(range=c(-1.2,1.2)))
 ```
 
 
-Row {data-height=600}
+Row {data-height=800}
 ---------------------------------
 ### new text
 
@@ -90,7 +135,7 @@ selection_widget2 <- bscols(
 )
 selection_widget2
 shared_beta2 %>%
-  plot_ly(x=~term, y=~estimate, color=~component_sig) %>%
+  plot_ly(x=~term, y=~estimate, color=~sig) %>%
     add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE,
               boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
   layout(autosize = TRUE, height = 400,
