@@ -66,7 +66,7 @@ onset_stop_table.session <- function(session, speed_threshold,
                                      min_duration = 3, still_duration = 1,
                                      pause_duration = 0.5){
   nav <- as.navr(session$player_log, session$experiment_log)
-  nav <- navr::remove_unreal_speeds(nav, cutoff=30, type="value")
+  nav <- navr::remove_unreal_speeds(nav, cutoff = 30, type = "value")
   onsets <- navr::search_onsets(nav, speed_threshold = speed_threshold, 
                                 min_duration = min_duration,
                                 still_speed_threshold = still_threshold,
