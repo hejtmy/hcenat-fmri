@@ -43,3 +43,10 @@ The analyses on the timeseries can be run in either matlab or R. After simulatin
 
 The matlab analyses are in the `fmri/analysis` - that saves the final correlation matrices in the exports
 The R analyses used for exporting the online exploration tool are in `reports/hrf-correlations.Rmd`
+
+
+
+## Notes and FAQ
+
+the pulse start and quest_time_start_fmri do not correspond well
+- this is *probably* due to the uneven teleporting. The pulse starts the teleporting and the quest, but the pointing and other aspects of the quest only start after the teleport is finished, therefore later. the pulse in which the quest started therefore precedes the quest pointing by about 2 seconds.

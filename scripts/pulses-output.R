@@ -3,15 +3,18 @@ library(navr)
 library(dplyr)
 source('scripts/loading.R')
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
-CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
+CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep = ",",
+                             header = TRUE)
 df_preprocessing <- load_participant_preprocessing_status()
 
+# This is calculated in preprocess-participants.R
 load("participants-prepared.RData")
 
 ## Results ----
 res <- quest_summary.participants(participants)
 res <- add_fmri_code(res, "participant", df_preprocessing)
-write.table(res, "exports/participant-performance.csv", sep=";", row.names = FALSE)
+write.table(res, "exports/participant-performance.csv", sep = ";",
+            row.names = FALSE)
 
 ## Pulses output ----
 df_temp <- res %>%
@@ -43,16 +46,20 @@ for(i in 1:nrow(df_temp)){
               c(line$type, "quest_id")] <- list(TRUE, line$quest_order_session)
   }
 }
-df_pulses <- select(res, ID, fmri_code) %>%
-  unique() %>% right_join(df_pulses, by="fmri_code")
-write.table(df_pulses, "exports/participant-pulses.csv", sep=";", row.names = FALSE)
+df_pulses <- res %>%
+  select(ID, fmri_code) %>%
+  unique() %>% 
+  right_join(df_pulses, by = "fmri_code")
+
+write.table(df_pulses, "exports/participant-pulses.csv", sep=";",
+            row.names = FALSE)
 rm(df_pulses, df_temp)
 
 ## Pointing ------
 res %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time, 
+  mutate(duration = time_end - time,
          angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   filter(!is.na(time)) %>%
@@ -61,7 +68,7 @@ res %>%
               sep=",", quote = FALSE)
 
 res %>%
-  filter(type =="learn") %>%
+  filter(type == "learn") %>%
   select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
   mutate(duration = time_end - time,
@@ -69,23 +76,23 @@ res %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
   write.table(., file.path("exports", "pointing-learn.csv"),
-              row.names = FALSE, sep=",", quote = FALSE)
+              row.names = FALSE, sep = ",", quote = FALSE)
 
 res %>%
-  filter(type=="trial") %>%
-  select(fmri_code, point_start_fmri, point_end_fmri, 
+  filter(type == "trial") %>%
+  select(fmri_code, point_start_fmri, point_end_fmri,
          correct_angle, chosen_angle) %>%
   rename(time = point_start_fmri, time_end = point_end_fmri) %>%
   mutate(duration = time_end - time,
          angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
   mutate(time = round(time, 4), duration = round(duration, 4)) %>%
   select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing-trial.csv"), 
-              row.names = FALSE, sep=",", quote = FALSE)
+  write.table(., file.path("exports", "pointing-trial.csv"),
+              row.names = FALSE, sep = ",", quote = FALSE)
   
 ## Onsets -----
 df_onset_stop <- onset_stop_table.participants(participants,
-                                               speed_threshold = 10, 
+                                               speed_threshold = 10,
                                                min_duration = 2,
                                                still_threshold = 1,
                                                still_duration = 1,
@@ -97,11 +104,11 @@ df_onset_stop$quest <- NA_real_
 non_na_res <- res[!is.na(res$quest_start_fmri_time) &
                     !is.na(res$quest_end_fmri_time), ]
 ## The stillness can end in the next quest
-# TODO - arrrange and then basically always add the lowest order? the one in which the event started
-# TODO - Check that this is working as indended :|
-# Brobablye 
+# TODO - arrange and then basically always add the lowest order? the one in which the event started
+# TODO - Check that this is working as intended :|
+# Probably yes
 for(i in 1:nrow(non_na_res)){
-  line <- non_na_res[i,]
+  line <- non_na_res[i, ]
   iFit <- df_onset_stop$ID == line$ID &
           df_onset_stop$fmri_time >= line$quest_start_fmri_time &
           df_onset_stop$fmri_time <= line$quest_end_fmri_time
@@ -110,21 +117,21 @@ for(i in 1:nrow(non_na_res)){
 
 df_onset_stop <- res %>%
   select(ID, quest=quest_order_session, type) %>%
-  right_join(df_onset_stop, by=c("ID", "quest"))
+  right_join(df_onset_stop, by = c("ID", "quest"))
 
 # Exporting
 df_onset_stop %>%
   mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
   select(fmri_code, time, duration, movement_type) %>%
   write.table(., file.path("exports","walking.csv"), row.names = FALSE, 
-              sep=",", quote = FALSE)
+              sep = ",", quote = FALSE)
 
 df_onset_stop %>%
   filter(type == "trial") %>%
   mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
   select(fmri_code, time, duration, movement_type) %>%
   write.table(., file.path("exports","walking-trial.csv"), row.names = FALSE, 
-              sep=",", quote = FALSE)
+              sep = ",", quote = FALSE)
 
 df_onset_stop %>%
   filter(type == "learn") %>%

@@ -31,10 +31,14 @@ pulse_average_speeds.participant <- function(participant){
 #' @examples
 pulse_average_speeds.session <- function(session, na.limit = 5){
   nav <- as.navr.session(session)
-  nav <- navr::remove_unreal_speeds(nav, cutoff=30, type="value")
-  log <- nav$data[!is.na(nav$data$pulse_id),]
-  res <- aggregate(log$speed, by = list(pulse = log$pulse_id), mean, na.rm = TRUE)
-  res.na <- aggregate(log$speed, by = list(pulse = log$pulse_id), function(x) sum(is.na(x)))
+  nav <- navr::remove_unreal_speeds(nav, cutoff = 30, type = "value")
+  log <- nav$data[!is.na(nav$data$pulse_id), ]
+  res <- aggregate(log$speed,
+                   by = list(pulse = log$pulse_id),
+                   mean, na.rm = TRUE)
+  res.na <- aggregate(log$speed,
+                      by = list(pulse = log$pulse_id),
+                      function(x) sum(is.na(x)))
   res$x[res.na$x > na.limit] <- NA_real_
   res <- res$x
   if(length(res) != N_PULSES){

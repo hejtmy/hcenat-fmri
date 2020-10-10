@@ -53,12 +53,13 @@ add_pulses_player <- function(df_player){
   if(length(nSynchro) < 1){
     warning('there are no Synchropulses in the player log')
     return(df_player)
-  } 
+  }
   # 1st and last need to be 1197 (400 pulses by 3s with 1st at 0) 
   first_last_difference <- df_player$Time[iSynchro[nSynchro]] - df_player$Time[iSynchro[1]]
   RECORDING_LENGTH <- (N_PULSES-1) * PULSE_LENGTH
   if(abs((first_last_difference - RECORDING_LENGTH)) > 0.1){
-    warning("First and last pulse are not",  RECORDING_LENGTH, " s away, but ", first_last_difference,", not synchronizing")
+    warning("First and last pulse are not",  RECORDING_LENGTH, 
+            " s away, but ", first_last_difference, ", not synchronizing")
     return(df_player)
   }
   
@@ -66,8 +67,9 @@ add_pulses_player <- function(df_player){
   df_player$pulse_id <- NA_integer_
   firstPulse <- df_player$Time[iSynchro[1]]
   for(i in 0:(N_PULSES-1)){
-    pulseTime <- c(firstPulse + PULSE_LENGTH*i, firstPulse + PULSE_LENGTH * (i+1))
-    df_player[Time > pulseTime[1] & Time < pulseTime[2], pulse_id:= i+1]
+    pulseTime <- c(firstPulse + PULSE_LENGTH * i, 
+                   firstPulse + PULSE_LENGTH * (i + 1))
+    df_player[Time > pulseTime[1] & Time < pulseTime[2], pulse_id := i + 1]
   }
   return(df_player)
 }

@@ -41,7 +41,7 @@ df_component_localization <- data.frame(
 remove(ptr, component_names, mri_folder)
 
 ## All components
-mri_folder <- file.path("exports", "components",  COMPONENT_TYPE)
+mri_folder <- file.path(RELATIVE_DIR, "exports", "components",  COMPONENT_TYPE)
 components_all <- load_mri(mri_folder, names_file)
 names_clean <- sapply(names(components_all),
                       function(x) {gsub(".csv", "", x)}, USE.NAMES = FALSE)
