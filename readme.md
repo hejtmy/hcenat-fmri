@@ -50,3 +50,5 @@ The R analyses used for exporting the online exploration tool are in `reports/hr
 
 the pulse start and quest_time_start_fmri do not correspond well
 - this is *probably* due to the uneven teleporting. The pulse starts the teleporting and the quest, but the pointing and other aspects of the quest only start after the teleport is finished, therefore later. the pulse in which the quest started therefore precedes the quest pointing by about 2 seconds.
+
+Participatns almost NEVER stop, as the time is very tight. There is very little stillness in learning/trials, leading to situations where some participnats have almost no events whatsoever. Cannot be included int he model.
