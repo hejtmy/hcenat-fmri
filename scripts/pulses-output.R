@@ -5,6 +5,9 @@ source('scripts/loading.R')
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep = ",",
                              header = TRUE)
+EXPORT_DIR <- "exports"
+EVENT_DIR <- file.path(EXPORT_DIR, "events")
+
 df_preprocessing <- load_participant_preprocessing_status()
 
 # This is calculated in preprocess-participants.R
@@ -13,8 +16,8 @@ load("participants-prepared.RData")
 ## Results ----
 res <- quest_summary.participants(participants)
 res <- add_fmri_code(res, "participant", df_preprocessing)
-write.table(res, "exports/participant-performance.csv", sep = ";",
-            row.names = FALSE)
+write.table(res, file.path(EXPORT_DIR, "participant-performance.csv"), 
+            sep = ";", row.names = FALSE)
 
 ## Pulses output ----
 df_temp <- res %>%
@@ -51,45 +54,35 @@ df_pulses <- res %>%
   unique() %>% 
   right_join(df_pulses, by = "fmri_code")
 
-write.table(df_pulses, "exports/participant-pulses.csv", sep=";",
-            row.names = FALSE)
+write.table(df_pulses, file.path(EXPORT_DIR, "participant-pulses.csv"), 
+            sep = ";", row.names = FALSE)
 rm(df_pulses, df_temp)
 
 ## Pointing ------
-res %>%
-  select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
-  rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time,
-         angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
-  mutate(time = round(time, 4), duration = round(duration, 4)) %>%
-  filter(!is.na(time)) %>%
-  select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing.csv"), row.names = FALSE, 
-              sep=",", quote = FALSE)
+export_pointing <- function(dat, filename){
+  dat %>%
+    select(fmri_code, point_start_fmri, point_end_fmri,
+           correct_angle, chosen_angle) %>%
+    rename(time = point_start_fmri, time_end = point_end_fmri) %>%
+    mutate(duration = time_end - time,
+           angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
+    mutate(time = round(time, 4), duration = round(duration, 4)) %>%
+    filter(!is.na(time)) %>%
+    select(-c(correct_angle, chosen_angle, time_end)) %>%
+    write.table(., file.path(EVENT_DIR, filename), row.names = FALSE, 
+                sep = ",", quote = FALSE)
+}
+export_pointing(res)
+export_pointing
 
 res %>%
   filter(type == "learn") %>%
-  select(fmri_code, point_start_fmri, point_end_fmri, correct_angle, chosen_angle) %>%
-  rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time,
-         angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
-  mutate(time = round(time, 4), duration = round(duration, 4)) %>%
-  select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing-learn.csv"),
-              row.names = FALSE, sep = ",", quote = FALSE)
+  export_pointing(., "pointing-learn.csv")
 
 res %>%
   filter(type == "trial") %>%
-  select(fmri_code, point_start_fmri, point_end_fmri,
-         correct_angle, chosen_angle) %>%
-  rename(time = point_start_fmri, time_end = point_end_fmri) %>%
-  mutate(duration = time_end - time,
-         angle_error = round(angle_diff(correct_angle, chosen_angle), 4)) %>%
-  mutate(time = round(time, 4), duration = round(duration, 4)) %>%
-  select(-c(correct_angle, chosen_angle, time_end)) %>%
-  write.table(., file.path("exports", "pointing-trial.csv"),
-              row.names = FALSE, sep = ",", quote = FALSE)
-  
+  export_pointing(., "pointing-trial.csv")
+
 ## Onsets -----
 df_onset_stop <- onset_stop_table.participants(participants,
                                                speed_threshold = 10,
@@ -120,25 +113,22 @@ df_onset_stop <- res %>%
   right_join(df_onset_stop, by = c("ID", "quest"))
 
 # Exporting
-df_onset_stop %>%
-  mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
-  select(fmri_code, time, duration, movement_type) %>%
-  write.table(., file.path("exports","walking.csv"), row.names = FALSE, 
-              sep = ",", quote = FALSE)
+export_onset_stop <- function(dat, filename){
+  dat %>%
+    mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
+    select(fmri_code, time, duration, movement_type) %>%
+    write.table(., file.path(EVENT_DIR, filename), row.names = FALSE, 
+                sep = ",", quote = FALSE)
+}
+export_onset_stop(df_onset_stop, "walking.csv")
 
 df_onset_stop %>%
   filter(type == "trial") %>%
-  mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
-  select(fmri_code, time, duration, movement_type) %>%
-  write.table(., file.path("exports","walking-trial.csv"), row.names = FALSE, 
-              sep = ",", quote = FALSE)
+  export_onset_stop(., "walking-trial.csv")
 
 df_onset_stop %>%
   filter(type == "learn") %>%
-  mutate(time = round(fmri_time, 4), duration = round(duration, 4)) %>%
-  select(fmri_code, time, duration, movement_type) %>%
-  write.table(., file.path("exports","walking-learn.csv"), row.names = FALSE, 
-              sep=",", quote = FALSE)
+  export_onset_stop(., "walking-learn.csv")
 
 ## Speeds ------
 for(id in names(participants)){
@@ -146,7 +136,7 @@ for(id in names(participants)){
   speeds <- pulse_average_speeds.session(participants[[id]][[1]])
   speeds <- round(speeds, 4)
   fmri_id <- df_preprocessing$fmri_code[df_preprocessing$ID == id]
-  filename <- file.path('exports', 'speeds', paste0(fmri_id, '_speed.txt'))
+  filename <- file.path(EVENT_DIR, 'speeds', paste0(fmri_id, '_speed.txt'))
   data.table::fwrite(list(speeds), filename)
 }
 
@@ -156,7 +146,7 @@ for(id in names(participants)){
   rotations <- pulse_sum_rotation.session(participants[[id]][[1]])
   rotations <- round(rotations, 4)
   fmri_id <- df_preprocessing$fmri_code[df_preprocessing$ID == id]
-  filename <- file.path('exports', 'rotations', paste0(fmri_id, '_rotation.txt'))
+  filename <- file.path(EVENT_DIR, 'rotations', paste0(fmri_id, '_rotation.txt'))
   rotations <- rotations[, c("x", "y", "total")]
   write.table(rotations, filename, sep=",", row.names = FALSE)
 }

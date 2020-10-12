@@ -9,14 +9,16 @@ MIN_PULSE_RATIO = 0.5; %minimum ratio of a pulse happening in event
 % paths work if the matlab is loaded at the project ROOT
 %% preparing data paths
 dataDirectory = 'E:\OneDrive\NUDZ\projects\HCENAT\MRI-data-tomecek\';
+eventDirectory = fulfille(pwd, 'exports', 'events');
+exportDirectory = fullfile(pwd, 'exports', 'hrf');
 
-pthSubjects = fullfile(dataDirectory,'subs_20190830_1422.txt');
-pthWalkingData = fullfile(pwd,'exports','walking.csv');
-pthWalkingLearnData = fullfile(pwd,'exports','walking-learn.csv');
-pthWalkingTrialData = fullfile(pwd,'exports','walking-trial.csv');
-pthPointingData = fullfile(pwd,'exports','pointing.csv');
-pthPointingLearnData = fullfile(pwd,'exports','pointing-learn.csv');
-pthPointingTrialData = fullfile(pwd,'exports','pointing-trial.csv');
+pthSubjects = fullfile(dataDirectory, 'subs_20190830_1422.txt');
+pthWalkingData = fullfile(eventDirectory, 'walking.csv');
+pthWalkingLearnData = fullfile(eventDirectory, 'walking-learn.csv');
+pthWalkingTrialData = fullfile(eventDirectory, 'walking-trial.csv');
+pthPointingData = fullfile(eventDirectory, 'pointing.csv');
+pthPointingLearnData = fullfile(eventDirectory, 'pointing-learn.csv');
+pthPointingTrialData = fullfile(eventDirectory, 'pointing-trial.csv');
 
 %% Loading behavioural files
 subjects = importdata(pthSubjects);
@@ -43,38 +45,38 @@ pointingTrialData = filtervalidevents(pointingTrialData);
 for i = 1:numel(subjects)
     [subject, ~] = getsubjectnamesession(subjects{i});
     disp(['Preparing subject ' subject]);
-    %% Movement ----
+    %% Movement ------------------
     subjectData = getsubjectevents(walkingData, subject);
     [hrfMovement, hrfStill] = preparehrfmovement(subjectData, TR,...
         SESSION_LENGTH, MIN_PULSE_RATIO);
-    savehrf(hrfMovement, subject, 'moving');
-    savehrf(hrfStill, subject, 'still');
+    savehrf(hrfMovement, exportDirectory, subject, 'moving');
+    savehrf(hrfStill, exportDirectory, subject, 'still');
     
     subjectData = getsubjectevents(walkingLearnData, subject);
     [hrfMovement, hrfStill] = preparehrfmovement(subjectData, TR,...
         SESSION_LENGTH, MIN_PULSE_RATIO);
-    savehrf(hrfMovement, subject, 'moving-learn');
-    savehrf(hrfStill, subject, 'still-learn');
+    savehrf(hrfMovement, exportDirectory, subject, 'moving-learn');
+    savehrf(hrfStill, exportDirectory, subject, 'still-learn');
     
     subjectData = getsubjectevents(walkingTrialData, subject);
     [hrfMovement, hrfStill] = preparehrfmovement(subjectData, TR,...
         SESSION_LENGTH, MIN_PULSE_RATIO);
     savehrf(hrfMovement, subject, 'moving-trial');
-    savehrf(hrfStill, subject, 'still-trial');
+    savehrf(hrfStill, exportDirectory, subject, 'still-trial');
 
-    %% Pointing ----
+    %% Pointing -----------------
     subjectData = getsubjectevents(pointingData, subject);
     hrfPoinitng = preparehrfpointing(subjectData, TR,...
         SESSION_LENGTH, MIN_PULSE_RATIO);
-    savehrf(hrfPoinitng, subject, 'pointing');
+    savehrf(hrfPoinitng, exportDirectory, subject, 'pointing');
     
     subjectData = getsubjectevents(pointingLearnData, subject);
     hrfPoinitng = preparehrfpointing(subjectData, TR,...
         SESSION_LENGTH, MIN_PULSE_RATIO);
-    savehrf(hrfPoinitng, subject, 'pointing-learn');
+    savehrf(hrfPoinitng, exportDirectory, subject, 'pointing-learn');
     
     subjectData = getsubjectevents(pointingTrialData, subject);
     hrfPoinitng = preparehrfpointing(subjectData, TR,...
         SESSION_LENGTH, MIN_PULSE_RATIO);
-    savehrf(hrfPoinitng, subject, 'pointing-trial');
+    savehrf(hrfPoinitng, exportDirectory, subject, 'pointing-trial');
 end

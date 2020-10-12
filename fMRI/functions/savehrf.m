@@ -1,6 +1,6 @@
-function [] = savehrf(data, subject, type)
+function [] = savehrf(data, exportDir, subject, type)
 %SAVEHRF Standardizes saving of simualted hrf
 %   Detailed explanation goes here
-    dlmwrite(fullfile('exports', 'hrf', [subject, '_', type, '.txt']), data);
+    dlmwrite(fullfile(exportDir, [subject, '_', type, '.txt']), data);
 end
 

@@ -10,18 +10,20 @@
 options(gargle_oauth_email = "hejtmy@gmail.com")
 
 if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- "."
-
+EXPORT_DIR <- "exports"
+EVENT_DIR <- file.path(EXPORT_DIR, "events")
 # Loading demograhics ---------
+
 message("Loading demographics")
-df_preprocessing <- read.table(file.path(RELATIVE_DIR, "exports", "preprocessing.csv"), 
+df_preprocessing <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "preprocessing.csv"), 
                                sep = ";", header = TRUE)
 
 # Loading pulses -----
-df_pulses <- read.table(file.path(RELATIVE_DIR, "exports", "participant-pulses.csv"), 
+df_pulses <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "participant-pulses.csv"), 
                         sep = ";", header = TRUE)
 
 # Loading behavioral data ----
-df_behavioral <- read.table(file.path(RELATIVE_DIR, "exports", "participant-performance.csv"),
+df_behavioral <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "participant-performance.csv"),
                             sep=";", header = TRUE)
 
 # Load components -----
@@ -41,7 +43,7 @@ df_component_localization <- data.frame(
 remove(ptr, component_names, mri_folder)
 
 ## All components
-mri_folder <- file.path(RELATIVE_DIR, "exports", "components",  COMPONENT_TYPE)
+mri_folder <- file.path(RELATIVE_DIR, EXPORT_DIR, "components",  COMPONENT_TYPE)
 components_all <- load_mri(mri_folder, names_file)
 names_clean <- sapply(names(components_all),
                       function(x) {gsub(".csv", "", x)}, USE.NAMES = FALSE)
@@ -57,9 +59,9 @@ good_participants <- intersect(names(components[[1]]), good_participants)
 hrf_names <- c("moving", "moving-learn", "moving-trial",
                "still", "still-learn", "still-trial",
                "pointing", "pointing-learn", "pointing-trial")
-hrf_folder <- file.path(RELATIVE_DIR, "exports", "hrf")
-speed_folder <- file.path(RELATIVE_DIR, "exports", "speeds")
-rotation_folder <- file.path(RELATIVE_DIR, "exports", "rotations")
+hrf_folder <- file.path(RELATIVE_DIR,  EXPORT_DIR, "hrf")
+speed_folder <- file.path(RELATIVE_DIR, EVENT_DIR, "speeds")
+rotation_folder <- file.path(RELATIVE_DIR, EVENT_DIR, "rotations")
 
 ## Loading hrfs ------
 message("loading hrfs")
