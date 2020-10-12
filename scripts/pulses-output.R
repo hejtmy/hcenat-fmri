@@ -148,5 +148,5 @@ for(id in names(participants)){
   fmri_id <- df_preprocessing$fmri_code[df_preprocessing$ID == id]
   filename <- file.path(EVENT_DIR, 'rotations', paste0(fmri_id, '_rotation.txt'))
   rotations <- rotations[, c("x", "y", "total")]
-  write.table(rotations, filename, sep=",", row.names = FALSE)
+  write.table(rotations, filename, sep = ",", row.names = FALSE)
 }
