@@ -1,17 +1,4 @@
-%%
-clear ; clc
-
-%% Setting FMRI base
-TR = 3; % TR = 3 sec
-SESSION_LENGTH = 400;
-MIN_PULSE_RATIO = 0.5; %minimum ratio of a pulse happening in event
-
-% paths work if the matlab is loaded at the project ROOT
-%% preparing data paths
-dataDirectory = 'E:\OneDrive\NUDZ\projects\HCENAT\MRI-data-tomecek\';
-eventDirectory = fulfille(pwd, 'exports', 'events');
-exportDirectory = fullfile(pwd, 'exports', 'hrf');
-
+%% Setting folder
 pthSubjects = fullfile(dataDirectory, 'subs_20190830_1422.txt');
 pthWalkingData = fullfile(eventDirectory, 'walking.csv');
 pthWalkingLearnData = fullfile(eventDirectory, 'walking-learn.csv');
@@ -61,7 +48,7 @@ for i = 1:numel(subjects)
     subjectData = getsubjectevents(walkingTrialData, subject);
     [hrfMovement, hrfStill] = preparehrfmovement(subjectData, TR,...
         SESSION_LENGTH, MIN_PULSE_RATIO);
-    savehrf(hrfMovement, subject, 'moving-trial');
+    savehrf(hrfMovement, exportDirectory, subject, 'moving-trial');
     savehrf(hrfStill, exportDirectory, subject, 'still-trial');
 
     %% Pointing -----------------
