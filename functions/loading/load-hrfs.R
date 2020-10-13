@@ -33,6 +33,10 @@ load_hrfs <- function(base_dir, hrf_names, fmri_codes){
   return(hrfs)
 }
 
-rename_hrfs <- function(hrfs, df_preprocessing, to="unity"){
+load_series <- function(){
+  
+}
+
+rename_hrfs <- function(hrfs, df_preprocessing, to = "unity"){
   
 }

@@ -11,8 +11,7 @@ RELATIVE_DIR <- "."
 source("scripts/load-data.R")
 df_all <- merge(df_hrfs, df_fmri_all, by = c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
-df_all <- df_all %>% 
-  arrange(participant, pulse_id)
+df_all <- arrange(df_all, participant, pulse_id)
 
 components <- components_all
 df_analysis <- df_all

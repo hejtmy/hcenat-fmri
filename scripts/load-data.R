@@ -1,11 +1,13 @@
 #' The output of this script are:
-#' - df_hrfs
+#' df_hrfs
+#' df_shifted_hrfs
 #' df_pulses
 #' df_preprocessing
 #' df_fmri
 #' df_fmri_all
 #' df_behavioral
 #' df_component_localization
+#' 
 
 options(gargle_oauth_email = "hejtmy@gmail.com")
 
@@ -13,7 +15,6 @@ if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- "."
 EXPORT_DIR <- "exports"
 EVENT_DIR <- file.path(EXPORT_DIR, "events")
 # Loading demograhics ---------
-
 message("Loading demographics")
 df_preprocessing <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "preprocessing.csv"), 
                                sep = ";", header = TRUE)
@@ -24,8 +25,9 @@ df_pulses <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "participant-pulses.
 
 # Loading behavioral data ----
 df_behavioral <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "participant-performance.csv"),
-                            sep=";", header = TRUE)
+                            sep = ";", header = TRUE)
 
+good_participants <- get_good_participant_ids(df_preprocessing, "unity")
 # Load components -----
 message("Loading components")
 mri_folder <- file.path(DATA_DIR, "..", "MRI-data-tomecek", COMPONENT_TYPE)
@@ -34,6 +36,8 @@ components <- load_mri(mri_folder, names_file)
 components <- rename_mri_participants(components, df_preprocessing)
 df_fmri <- restructure_mri(components)
 
+# only selects those participants who have components
+good_participants <- intersect(names(components[[1]]), good_participants)
 ## Creating component names
 component_names <- names(components)
 ptr <- "^.*?_(.*?)_([0-9]*)"
@@ -51,10 +55,8 @@ names(components_all) <- names_clean
 components_all <- rename_mri_participants(components_all, df_preprocessing)
 df_fmri_all <- restructure_mri(components_all)
 
-good_participants <- get_good_participant_ids(df_preprocessing, "unity")
-
-# only selects those participants who have components
-good_participants <- intersect(names(components[[1]]), good_participants)
+## Loading hrfs ------
+message("loading hrfs")
 
 hrf_names <- c("moving", "moving-learn", "moving-trial",
                "still", "still-learn", "still-trial",
@@ -62,10 +64,18 @@ hrf_names <- c("moving", "moving-learn", "moving-trial",
 hrf_folder <- file.path(RELATIVE_DIR,  EXPORT_DIR, "hrf")
 speed_folder <- file.path(RELATIVE_DIR, EVENT_DIR, "speeds")
 rotation_folder <- file.path(RELATIVE_DIR, EVENT_DIR, "rotations")
-
-## Loading hrfs ------
-message("loading hrfs")
 codes <- fmri_code(good_participants, df_preprocessing)
+
+restructure_hrfs <- function(hrfs){
+  res <- data.frame()
+  for(participant in names(hrfs)){
+    temp <- as.data.frame(hrfs[[participant]])
+    temp$participant <- participant
+    temp$pulse_id <- 1:400
+    res <- rbind(res, temp)
+  }
+  return(res)
+}
 
 #hrfs <- load_hrfs("exports", hrf_names, codes)
 #hrfs <- rename_hrfs(hrfs, df_preprocessing, to="unity")
@@ -85,23 +95,30 @@ for(name in good_participants){
     f <- file.path(hrf_folder, paste0(code, "_", hrf, ".txt"))
     hrfs[[name]][[hrf]]<- scan(f, n = 400, sep="\n", quiet = TRUE)
     if(length(hrfs[[name]][[hrf]]) != 400){
-      warning(name, " ", hrf, " has length ", length(hrfs[[hrf]][[name]]))
+      warning(name, " ", hrf, " has length ", length(hrfs[[name]][[hrf]]))
+    }
+  }
+}
+### SHIFTED HRFS
+shifted_hrfs <- list()
+shifted_hrf_folder <- file.path(RELATIVE_DIR,  EXPORT_DIR, "shifted-hrf")
+for(name in good_participants){
+  code <- fmri_code(name, df_preprocessing)
+  for(hrf in hrf_names){
+    f <- file.path(shifted_hrf_folder, paste0(code, "_", hrf, ".txt"))
+    hrf_name <- paste0("shifted_", hrf)
+    shifted_hrfs[[name]][[hrf_name]]<- scan(f, n = 400, sep="\n", quiet = TRUE)
+    if(length(shifted_hrfs[[name]][[hrf_name]]) != 400){
+      warning(name, " ", hrf_name, " has length ", 
+              length(shifted_hrfs[[name]][[hrf_name]]))
     }
   }
 }
 
-restructure_hrfs <- function(hrfs){
-  res <- data.frame()
-  for(participant in names(hrfs)){
-    temp <- as.data.frame(hrfs[[participant]])
-    temp$participant <- participant
-    temp$pulse_id <- 1:400
-    res <- rbind(res, temp)
-  }
-  return(res)
-}
-
 df_hrfs <- restructure_hrfs(hrfs)
+df_shifted_hrfs <- restructure_hrfs(shifted_hrfs)
+
+# Finalizations -------
 df_all <- merge(df_hrfs, df_fmri, by = c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
 df_all <- df_all %>% arrange(participant, pulse_id)
