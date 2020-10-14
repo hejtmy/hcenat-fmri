@@ -5,7 +5,9 @@
 rename_mri_participants <- function(components, df_participants){
   ## Because of how the data is loaded, it is always loaded in the same order
   df <- data.frame(fmri_code = colnames(components[[1]]), stringsAsFactors = FALSE)
-  df <- df %>% left_join(df_participants[, c("ID", "fmri_code")], by=c("fmri_code"))
+  df <- df %>%
+    left_join(df_participants[, c("ID", "fmri_code")],
+              by = c("fmri_code"))
   new_names <- df$ID
   for(name in names(components)){
     colnames(components[[name]]) <- new_names
@@ -16,19 +18,30 @@ rename_mri_participants <- function(components, df_participants){
 
 #' Returns fmri code for a particular participant
 #'
-#' @param code Unity code to decode
+#' @param codes Unity codes to change to fmri
 #' @param df_preprocessing data.frame loaded with load_preprocessing_status
 #'
 #' @examples fmri_code("HCE_E_10", df_preprocessing)
 fmri_code <- function(codes, df_preprocessing){
-  lines <- df_preprocessing[df_preprocessing$ID %in% codes,]
-  if(nrow(lines) <  0){
+  ids <- sapply(codes, function(x){which(df_preprocessing$ID == x)}, 
+                USE.NAMES = FALSE)
+  if(!is.numeric(ids)){
     warning("bad code passed")
     return(NULL)
   }
-  return(lines$fmri_code)
+  return(df_preprocessing$fmri_code[ids])
 }
 
+
+unity_code <- function(codes, df_preprocessing){
+  ids <- sapply(codes, function(x){which(df_preprocessing$fmri_code == x)}, 
+                USE.NAMES = FALSE)
+  if(!is.numeric(ids)){
+    warning("bad code passed")
+    return(NULL)
+  }
+  return(df_preprocessing$ID[ids])
+}
 
 #' Changes the fmri data so that each participant has a single data frame with all components as columns
 #'
