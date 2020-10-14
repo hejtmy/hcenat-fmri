@@ -86,17 +86,15 @@ out3 <- rbind(out, out2) %>%
          sig = p_to_stars(p_value))
 
 df_cont <- df_cont %>%
-  right_join(out3, by=c("term", "component"))
+  right_join(out3, by=c("term", "component")) %>%
+  mutate(term = recode(term, "cont_mov_trial_learn" = "movement in trial larger than learn",
+                       "cont_mov_0" = "movement larger than 0" ,
+                       "cont_point_trial_learn" = "pointing in trial larger than learn",
+                       "cont_point_0" = "pointing larger than 0"))
 
 df_beta <- rbind(df_beta, df_cont)
 ```
 
-```{r eval =FALSE}
-mutate(`movement.trial > movement.learn` = paste(ifelse(sign_mov_trial, "+", "-"), p_mov_trial_learn),
-       `movement > 0` = paste(ifelse(sign_mov_0, "+", "-"), p_mov_0),
-       `pointing.trial > pointing.learn` = paste(ifelse(sign_point_trial, "+", "-"), p_point_trial_learn),
-       `pointing > 0` = paste(ifelse(sign_point_0, "+", "-"), p_point_0))
-```
 -------------------------------
 
 #### Overview
