@@ -9,23 +9,23 @@
 #' df_component_localization
 #' 
 
-options(gargle_oauth_email = "hejtmy@gmail.com")
+#options(gargle_oauth_email = "hejtmy@gmail.com")
 
-if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- "."
-EXPORT_DIR <- "exports"
+#if(!exists("RELATIVE_DIR")) RELATIVE_DIR <- "."
+EXPORT_DIR <- file.path(RELATIVE_DIR, "exports")
 EVENT_DIR <- file.path(EXPORT_DIR, "events")
 
 # Loading demograhics ---------
 message("Loading demographics")
-df_preprocessing <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "preprocessing.csv"), 
+df_preprocessing <- read.table(file.path(EXPORT_DIR, "preprocessing.csv"), 
                                sep = ";", header = TRUE)
 
 # Loading pulses -----
-df_pulses <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "participant-pulses.csv"), 
+df_pulses <- read.table(file.path(EXPORT_DIR, "participant-pulses.csv"), 
                         sep = ";", header = TRUE)
 
 # Loading behavioral data ----
-df_behavioral <- read.table(file.path(RELATIVE_DIR, EXPORT_DIR, "participant-performance.csv"),
+df_behavioral <- read.table(file.path(EXPORT_DIR, "participant-performance.csv"),
                             sep = ";", header = TRUE)
 
 good_participants <- get_good_participant_ids(df_preprocessing, "unity")
@@ -48,7 +48,7 @@ df_component_localization <- data.frame(
 remove(ptr, component_names, mri_folder)
 
 ## All components
-mri_folder <- file.path(RELATIVE_DIR, EXPORT_DIR, "components",  COMPONENT_TYPE)
+mri_folder <- file.path(EXPORT_DIR, "components",  COMPONENT_TYPE)
 components_all <- load_mri(mri_folder, names_file)
 names_clean <- sapply(names(components_all),
                       function(x) {gsub(".csv", "", x)}, USE.NAMES = FALSE)
@@ -62,9 +62,9 @@ message("loading hrfs")
 hrf_names <- c("moving", "moving-learn", "moving-trial",
                "still", "still-learn", "still-trial",
                "pointing", "pointing-learn", "pointing-trial")
-hrf_folder <- file.path(RELATIVE_DIR,  EXPORT_DIR, "hrf")
-speed_folder <- file.path(RELATIVE_DIR, EVENT_DIR, "speeds")
-rotation_folder <- file.path(RELATIVE_DIR, EVENT_DIR, "rotations")
+hrf_folder <- file.path(EXPORT_DIR, "hrf")
+speed_folder <- file.path(EVENT_DIR, "speeds")
+rotation_folder <- file.path(EVENT_DIR, "rotations")
 codes <- fmri_code(good_participants, df_preprocessing)
 
 restructure_hrfs <- function(hrfs){
@@ -102,7 +102,7 @@ for(name in good_participants){
 }
 ### SHIFTED HRFS
 hrfs_shifted <- list()
-shifted_hrf_folder <- file.path(RELATIVE_DIR,  EXPORT_DIR, "shifted-hrf")
+shifted_hrf_folder <- file.path(EXPORT_DIR, "shifted-hrf")
 for(name in good_participants){
   code <- fmri_code(name, df_preprocessing)
   for(hrf in hrf_names){

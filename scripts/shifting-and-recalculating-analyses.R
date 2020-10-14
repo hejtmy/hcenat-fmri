@@ -86,21 +86,3 @@ for(component in component_names){
 write.table(df_first_order_beta_shifted,
             file = "summaries/first-order-beta-shifted.csv", 
             sep = ";", row.names = FALSE)
-
-## REPORT ------
-df_first_order_beta <- read.table("summaries/first-order-beta.csv",
-                                  header = TRUE, sep=";")
-df_beta <- df_first_order_beta %>%
-  select(term, estimate, participant, component) %>%
-  pivot_wider(id_cols = c("participant", "component"), names_from="term",
-              values_from=estimate)
-
-df_beta_shifted <- df_first_order_beta_shifted %>%
-  select(term, estimate, participant, component) %>%
-  pivot_wider(id_cols = c("participant", "component"), names_from="term",
-              values_from=estimate)
-
-df_beta <- merge(df_beta, df_beta_shifted, by=c("participant", "component"),
-                suffixes=c("","_shifted"))
-
-cor(df_beta[,-c(1,2)])
