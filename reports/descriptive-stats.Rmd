@@ -1,0 +1,61 @@
+---
+title: "descriptive-stats"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "14/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyverse)
+
+N_PULSES = 400
+PULSE_LENGTH = 3
+FMRI_LENGTH = N_PULSES * PULSE_LENGTH
+
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+RELATIVE_DIR <- ".."
+COMPONENT_TYPE <- "filtered"
+
+source("../scripts/loading.R")
+source_folder("../functions/")
+source("../scripts/load-data.R")
+
+df_walk <- read.csv("../exports/events/walking.csv") %>%
+  mutate(participant = unity_code(fmri_code, df_preprocessing))
+df_point <- read.csv("../exports/events/pointing.csv") %>%
+  mutate(participant = unity_code(fmri_code, df_preprocessing))
+```
+
+- Number of participants in the components: `r length(unique(df_fmri$participant))`
+- Number of participants with unity recording: `r length(unique(df_walk$participant))`
+- Number of participants with valid recordings: `r length(unique(df_all$participant))`
+
+```{r}
+df_summary_walk <- df_walk %>%
+  mutate(end_time = time + duration,
+         end_time = ifelse(end_time > FMRI_LENGTH, FMRI_LENGTH, end_time),
+         duration = end_time-time) %>%
+  filter(time > 0, duration > 0, time < FMRI_LENGTH) %>%
+  group_by(participant, event = movement_type) %>%
+  summarise(duration = sum(duration),
+            events= n())
+
+df_summary_point <- df_point %>%
+  filter(time > 0, time < FMRI_LENGTH) %>%
+  group_by(participant) %>%
+  summarise(duration = sum(duration),
+            events = n()) %>%
+  mutate(event = "pointing")
+
+df_summary <- rbind(df_summary_point, df_summary_walk)
+
+df_summary %>%
+  group_by(event) %>%
+  summarise(ratio = mean(duration)/FMRI_LENGTH,
+            n_events = mean(events)) %>%
+  knitr::kable()
+```
+
+Participants spent about half the time moving, 10 percent pointing and 18 percent still. The rest (about 21 percent) are situations of short movements or short breaks not long enough to pass the threshold for movement or stillness (the requirement is consecutive stillness/movement of at least 2 seconds at 0 m/s vs >3 m/s ).
+
