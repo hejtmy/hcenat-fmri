@@ -28,13 +28,13 @@ COMPONENT_TYPE <- "filtered"
 RELATIVE_DIR <- "."
 source("scripts/load-data.R")
 df_all_hrfs <- df_shifted_hrfs %>%
-  right_join(df_hrfs, by=c("participant", "pulse_id"))
+  right_join(df_hrfs, by = c("participant", "pulse_id"))
 
 ## Visually compare
 df_all_hrfs %>%
   ggplot(aes(x=pulse_id)) +
-    geom_line(aes(y=shifted_moving.trial), color = "red") +
-    geom_line(aes(y=moving.trial), color="black") +
+    geom_line(aes(y = shifted_moving.trial), color = "red") +
+    geom_line(aes(y = moving.trial), color = "black") +
     facet_wrap(~participant)
 
 cor(df_all_hrfs$shifted_pointing, df_all_hrfs$pointing)
@@ -43,8 +43,10 @@ cor(df_all_hrfs$shifted_pointing, df_all_hrfs$pointing)
 library(nlme)
 library(broom.mixed)
 library(tidyverse)
-df_all_shifted <- merge(df_shifted_hrfs, df_fmri_all, by = c("pulse_id", "participant"))
-df_all_shifted <- left_join(df_all_shifted, df_pulses, by = c("participant" = "ID", "pulse_id"))
+df_all_shifted <- merge(df_shifted_hrfs, df_fmri_all,
+                        by = c("pulse_id", "participant"))
+df_all_shifted <- left_join(df_all_shifted, df_pulses,
+                            by = c("participant" = "ID", "pulse_id"))
 df_all_shifted <- arrange(df_all_shifted, participant, pulse_id)
 colnames(df_all_shifted) <- gsub("shifted_", "", colnames(df_all_shifted))
 
@@ -55,15 +57,15 @@ component_names <- names(components)
 participant_names <- unique(df_analysis$participant)
 
 ## Setting parameters -------
-FIRST_ORDER_FORMULA <- " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial"
+FORMULA <- " ~ 1 + moving.learn + moving.trial + pointing.learn + pointing.trial"
 autocorrelation_structure_first <- corAR1(0.3, form = ~1)
 
 ## Mixed model first level output -------
 lme_first_order_model <- function(formula, dat){
   mod <- gls(formula,
-             method="REML",
+             method = "REML",
              data = dat,
-             control = nlme::lmeControl(rel.tol=1e-6),
+             control = nlme::lmeControl(rel.tol = 1e-6),
              correlation = autocorrelation_structure_first)
   return(mod)
 }
@@ -73,7 +75,7 @@ for(component in component_names){
   for(participant_code in participant_names){
     cat(".")
     df_participant <- df_analysis[df_analysis$participant == participant_code, ]
-    form <- paste0(component, FIRST_ORDER_FORMULA)
+    form <- paste0(component, FORMULA)
     form <- as.formula(form)
     mod <- lme_first_order_model(form, df_participant)
     mod_out <- tidy(mod) %>%
@@ -81,10 +83,11 @@ for(component in component_names){
     df_first_order_beta_shifted <- rbind(df_first_order_beta_shifted, mod_out)
   }
 }
-write.table(df_first_order_beta_shifted, file = "summaries/first-order-beta-shifted.csv", 
+write.table(df_first_order_beta_shifted,
+            file = "summaries/first-order-beta-shifted.csv", 
             sep = ";", row.names = FALSE)
 
-## 
+## REPORT ------
 df_first_order_beta <- read.table("summaries/first-order-beta.csv",
                                   header = TRUE, sep=";")
 df_beta <- df_first_order_beta %>%
