@@ -9,10 +9,14 @@ output: html_document
 library(tidyverse)
 library(knitr)
 
-df_mixed_beta <- read.table("../summaries/second-order-mixed-beta.csv", header=TRUE, sep=";")
-df_mixed_contrast <- read.table("../summaries/second-order-mixed-contrasts.csv", header=TRUE, sep=";")
-df_first_order_beta <- read.table("../summaries/first-order-beta.csv", header=TRUE, sep=";")
-df_glm_first_order_beta <- read.table("../summaries/glm-first-order-beta.csv", header=TRUE, sep=";")
+df_mixed_beta <- read.table("../summaries/second-order-mixed-beta.csv",
+                            header = TRUE, sep=";")
+df_mixed_contrast <- read.table("../summaries/second-order-mixed-contrasts.csv", 
+                                header=TRUE, sep=";")
+df_first_order_beta <- read.table("../summaries/first-order-beta.csv",
+                                  header = TRUE, sep=";")
+df_glm_first_order_beta <- read.table("../summaries/glm-first-order-beta.csv",
+                                      header=TRUE, sep=";")
 
 COMPARISON_CORRECTION <- "fdr"
 ```

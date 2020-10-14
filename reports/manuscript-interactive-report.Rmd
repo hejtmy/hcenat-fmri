@@ -6,7 +6,8 @@ knit: (function(inputFile, encoding) {
       rmarkdown::render(inputFile,
                         encoding=encoding, 
                         output_file=file.path(dirname(inputFile),
-                        output_dir = "../docs", 'manuscript-interactive-report.html'))})
+                          output_dir = "../docs",
+                          'manuscript-interactive-report.html'))})
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: scroll
@@ -32,6 +33,7 @@ df_beta <- read.table("../summaries/first-order-beta.csv",
                                   header = TRUE, sep = ";")
 
 df_beta <- df_beta %>%
+  filter(term != "(Intercept)") %>%
   select(-c(p.value, std.error, statistic)) %>%
   mutate(component = factor(as.numeric(gsub("filt_component_", "", component))))
 
@@ -90,7 +92,6 @@ df_beta <- rbind(df_beta, df_cont)
 ```
 
 ```{r eval =FALSE}
-
 mutate(`movement.trial > movement.learn` = paste(ifelse(sign_mov_trial, "+", "-"), p_mov_trial_learn),
        `movement > 0` = paste(ifelse(sign_mov_0, "+", "-"), p_mov_0),
        `pointing.trial > pointing.learn` = paste(ifelse(sign_point_trial, "+", "-"), p_point_trial_learn),
@@ -99,7 +100,20 @@ mutate(`movement.trial > movement.learn` = paste(ifelse(sign_mov_trial, "+", "-"
 -------------------------------
 
 #### Overview
-Uses first order beta coefficients
+This report uses first order beta coefficients of the `component ~ 1 + moving.trial + moving.learn + pointing.trial + pointing.learn` model. The model is built for each participant and component and the final coefficients are recorded. The intercepts are not reported here. The significance determines wilcox test comparison of the all coefficients against 0. The contrasts significances are determined as follows:
+
+- movement > 0: calculated as a sum of betas of (moving.learn + moving.trial). P value then unpaired wilcox test comparing these against 0
+- movement.trial > movement.learn: constrast estimate computed as the moving.trial - moving.learn betas. P values are obtained using paired wilcox test comparing the betas against each other
+
+P values of beta coefficients are corrected with FDR correction (intercepts not included in this correction)
+Calculated contrast P values are also corrected with FDR correction (separately from main betas)
+
+#### How to use
+The main window allows plotting of all components for a particular beta or contrast. The dots are individual beta coefficients for the component and predictor for a single participant. 
+
+Left bottom graphs allow plotting of the all the betas and contrasts for a particular component. Individual dots are again results for a single participant, final barplot then determines mean, median etc. of the entire sample.
+
+Left right window allows visualising of the given component. THis needs to be set manually, does not change automatically.
 
 Row {data-height=600}
 ---------------------------
