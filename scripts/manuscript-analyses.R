@@ -20,8 +20,8 @@ component_names <- names(components)
 participant_names <- unique(df_analysis$participant)
 
 ## Setting parameters -------
-FIRST_ORDER_FORMULA <- " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial"
-contrast <- matrix(c(-1,1,0,0,1,1,0,0,0,0,-1,1,0,0,1,1), 4, 4)
+FORMULA <- " ~ 1 + moving.learn + moving.trial + pointing.learn + pointing.trial"
+contrast <- matrix(c(0,-1,1,0,0,0,1,1,0,0,0,0,0,-1,1,0,0,0,1,1), 4, 5, byrow = TRUE)
 rownames(contrast) <- c("movement.trial > movement.learn", "movement > 0", 
                         "pointing.trial > pointing.learn", "pointing > 0")
 autocorrelation_structure <- corAR1(0.3, form = ~1|participant)
@@ -30,9 +30,10 @@ autocorrelation_structure_first <- corAR1(0.3, form = ~1)
 ## Mixed model second level output ------
 message("Starting second level analysis")
 lme_second_order_model <- function(formula){
+  f_random <- as.formula(paste0(FORMULA, " | participant"))
   mod <- lme(formula,
-      random = ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial | participant,
-      method="REML",
+      random = f_random,
+      method = "REML",
       data = df_analysis,
       control = nlme::lmeControl(rel.tol=1e-6),
       correlation = autocorrelation_structure)
@@ -46,7 +47,7 @@ for(component in component_names){
   form <- as.formula(form)
   mod <- lme_second_order_model(form)
   fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1"))
-  save(mod, file=fname)
+  save(mod, file = fname)
   cont <- contrast_output(mod, contrast) %>%
     mutate(component = component)
   df_mixed_contrast <- rbind(df_mixed_contrast, cont)
@@ -78,7 +79,7 @@ for(component in component_names){
   for(participant_code in participant_names){
     cat(".")
     df_participant <- df_analysis[df_analysis$participant == participant_code, ]
-    form <- paste0(component, FIRST_ORDER_FORMULA)
+    form <- paste0(component, FORMULA)
     form <- as.formula(form)
     mod <- lme_first_order_model(form, df_participant)
     mod_out <- tidy(mod) %>%
@@ -104,7 +105,7 @@ for(component in component_names) {
   for(participant_code in participant_names){
     cat(".")
     df_participant <- df_analysis[df_analysis$participant == participant_code, ]
-    form <- paste0(component, FIRST_ORDER_FORMULA)
+    form <- paste0(component, FORMULA)
     form <- as.formula(form)
     mod <- glm_first_order_model(form, df_participant)
     mod_out <- tidy(mod) %>%
