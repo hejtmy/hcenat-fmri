@@ -213,7 +213,8 @@ All the information put together. These coefficients vs contrasts correspond in 
 ```{r, echo=FALSE}
 df_beta_all <- df_beta_mixed_second %>%
   left_join(df_avg_beta_mixed_first, by="component", suffix = c("_mixed_second", "_mixed_first")) %>%
-  left_join(rename_at(df_avg_beta_glm_first, vars(-component), function(x) paste0(x, "_glm_first")), by = "component")
+  left_join(rename_at(df_avg_beta_glm_first, vars(-component), function(x) paste0(x, "_glm_first")), by = "component") %>%
+  select(-starts_with("(Intercept)"))
 
 df_beta_all %>%
     unite("moving_learn", starts_with("moving.learn"), sep =  " / ") %>%
