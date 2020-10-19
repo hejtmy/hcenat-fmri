@@ -25,7 +25,7 @@ onset <- df_onsets_stops %>% filter(movement_type == "moving") %>% .[20,]
 
 df_player %>%
   filter(fmri_time > onset$time, fmri_time < onset$time + onset$duration) %>%
-  ggplot(aes(x=Time, y=distance)) + geom_line()
+  ggplot(aes(x = Time, y = distance)) + geom_line()
 
 df_onsets[1,]
 
