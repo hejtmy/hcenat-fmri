@@ -32,7 +32,7 @@ p_to_stars <- function(values){
 df_beta <- read.table("../summaries/first-order-beta.csv",
                                   header = TRUE, sep = ";")
 
-df_components <- read.table("../data/komponenty.csv", sep=";", header = TRUE) %>%
+df_components <- read.table("../data/komponenty.txt", sep=";", header = TRUE) %>%
   arrange(component)
 
 df_beta <- df_beta %>%

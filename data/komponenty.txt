@@ -1,0 +1,59 @@
+component;component_label;component_notes
+1;artefact;cevy
+2;DMN;front+dorz
+3;bazalni ganglia;
+4;VIS;occip
+5;DMN/SN;ACC, insula, rHPC?
+6;artefact;
+7;precuneus?;right
+8;SN;AC, bilatINS
+9;artefact;eyes
+10;VIS?;ventral stream?
+11;temporoparietal;?
+12;HPC;right TC
+13;artefact?;DMN/SN
+14;artefact;eyes
+15;artefact;surface
+16;CEN;right, SN?
+17;subcortical;artefact?
+18;somatomotor;Lmotor,Rcerebelum
+19;artefact;eyes
+20;subcortical;thalamus?
+21;motor;cerebellum Bilat
+22;artefact;orbitofrontal
+23;CEN;bilat
+24;artefact;
+25;VISUO;FFG bilat
+26;artefact;surface
+27;limbic areas?;
+28;cerebellum;central
+29;artefact;
+30;artefact;
+31;auditory cortex?;temporo-parietal
+32;artefact;frontal
+33;somatomotor;Rmotor,Lcereb
+34;artefact;eyes
+35;VISUO;V1-4
+36;cerebellum?;central
+37;CEN;left+bilat
+38;UNCERTAIN;Loccip,cereb
+39;CEN;left+bilat
+40;subcortical?;
+41;artefact;
+42;artefact;orbitofrontal
+43;VIS;
+44;subcortical;TH, BG?
+45;artefact;surface
+46;CEN;right
+47;cerebellum;
+48;cuneus/PCC;?
+49;artefact;eyes
+50;artefact;surface
+51;DMN;dorzal, PCC
+52;DMN;frontal,mPFC
+53;cuneus/PCC;?
+54;HPC;temporal c.
+55;artefact;eyes
+56;HPC/INS?;temporal c.
+57;somatomotor;motor cortex?
+58;artefact;eyes
