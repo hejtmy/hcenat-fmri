@@ -32,12 +32,16 @@ p_to_stars <- function(values){
 df_beta <- read.table("../summaries/first-order-beta.csv",
                                   header = TRUE, sep = ";")
 
+df_components <- read.table("../data/komponenty.csv", sep=";", header = TRUE) %>%
+  arrange(component)
+
 df_beta <- df_beta %>%
   filter(term != "(Intercept)") %>%
   select(-c(p.value, std.error, statistic)) %>%
-  mutate(component = factor(as.numeric(gsub("filt_component_", "", component))))
-
-levels(df_beta$component) <- paste0("component_", levels(df_beta$component))
+  mutate(component = as.numeric(gsub("filt_component_", "", component))) %>%
+  left_join(df_components, by="component") %>%
+  mutate(component = paste0(component_label, "(", component, ")")) %>%
+  select(-c(component_label, component_notes))
 
 df_beta <- df_beta %>%
   group_by(term, component) %>%
@@ -155,6 +159,18 @@ shared_beta2 %>%
 ```
 
 ### Component
+```{r, results='asis'}
+cat('<script>
+var myStorage = window.localStorage;')
+for(i in 1:nrow(df_components)){
+  script <- paste0('
+  myStorage.setItem("component', df_components$component[i], '", JSON.stringify({"label":"', df_components$component_label[i], '", "note":"', df_components$component_notes[i], '"}));')
+  cat(script)
+}
+cat('</script>')
+
+```
+
 
 ```{r, results='asis'}
 knitr::raw_html('
@@ -172,7 +188,9 @@ output.innerHTML = slider.value; // Display the default slider value
 
 // Update the current slider value (each time you drag the slider handle)
 slider.oninput = function() {
-  output.innerHTML = this.value;
+  var componentName = "component" + this.value;
+  var obj = JSON.parse(myStorage.getItem(componentName))
+  output.innerHTML = this.value + ": " + obj.label + " - " + obj.note;
   setImage(this.value);
 }
 function setImage(value){
