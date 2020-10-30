@@ -32,7 +32,8 @@ p_to_stars <- function(values){
 df_beta <- read.table("../summaries/first-order-beta.csv",
                                   header = TRUE, sep = ";")
 
-df_components <- read.table("../data/komponenty.txt", sep=";", header = TRUE) %>%
+df_components <- read.table("../data/komponenty.txt", 
+                            sep = ";", header = TRUE) %>%
   arrange(component)
 
 df_beta <- df_beta %>%
@@ -52,6 +53,9 @@ df_beta <- df_beta %>%
          sig = p_to_stars(p_value)) %>%
   right_join(df_beta, by=c("term", "component"))
 
+```
+
+```{r calculating contrasts}
 ## Contrasts ---
 df_cont <- df_beta %>%
   select(term, estimate, participant, component) %>%

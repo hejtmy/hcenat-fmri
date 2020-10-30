@@ -1,0 +1,123 @@
+---
+title: "Interactive shifted comparisons"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "31/10/2020"
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                        encoding=encoding, 
+                        output_file=file.path(dirname(inputFile),
+                          output_dir = "../docs",
+                          'interactive-shifted-events.html'))})
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: rows
+---
+```{r setup, message=FALSE, warning=FALSE, results='hide', echo=FALSE}
+library(plotly)
+library(crosstalk)
+library(knitr)
+library(tidyverse)
+
+DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
+RELATIVE_DIR <- ".."
+COMPONENT_TYPE <- "filtered"
+source("../scripts/loading.R")
+source_folder("../functions/")
+df_first_order_beta_shifted <- read.table("../summaries/first-order-beta-shifted.csv",
+            sep = ";", header = TRUE) %>%
+  select(term, estimate, participant, component) %>%
+  mutate(shifted = TRUE)
+
+df_first_order_beta <- read.table("../summaries/first-order-beta.csv",
+                                  header = TRUE, sep = ";") %>%
+  select(term, estimate, participant, component) %>%
+  mutate(shifted = FALSE)
+
+df_beta <- rbind(df_first_order_beta, df_first_order_beta_shifted)
+rm(df_first_order_beta, df_first_order_beta_shifted)
+
+df_components <- read.table("../data/komponenty.txt", 
+                            sep = ";", header = TRUE) %>%
+  arrange(component)
+
+p_to_stars <- function(values){
+  func <- function(value){
+    if(value >= 0.05) return("-")
+    if(value < 0.001) return("***")
+    if(value < 0.01) return("**")
+    if(value < 0.05) return("*")
+  }
+  return(sapply(values, func))
+}
+
+df_beta <- df_beta %>%
+  filter(term != "(Intercept)") %>%
+  mutate(component = as.numeric(gsub("filt_component_", "", component))) %>%
+  left_join(df_components, by="component") %>%
+  mutate(component = paste0(component_label, "(", component, ")")) %>%
+  select(-c(component_label, component_notes))
+
+df_beta <- df_beta %>%
+  group_by(term, component, shifted) %>%
+  summarise(avg = mean(estimate), 
+            p_value = wilcox.test(estimate, mu = 0)$p.value,
+            .groups="drop") %>%
+  mutate(p_value = p.adjust(p_value, method = "fdr"),
+         sig = p_to_stars(p_value)) %>%
+  right_join(df_beta, by=c("term", "component", "shifted"))
+```
+
+```{r correlations}
+df_beta_wide <- df_beta %>%
+  mutate(term = ifelse(shifted, paste0(term, "_shifted"), term)) %>%
+  select(term, component, estimate, participant) %>%
+    pivot_wider(id_cols = c("participant", "component"), names_from = "term",
+                values_from = estimate)
+out_cor <- as.data.frame(cor(df_beta_wide[,-c(1,2)])) %>%
+  rownames_to_column("term") %>%
+  filter(!grepl("shifted", term)) %>%
+  select(term, ends_with("_shifted"))
+```
+
+-------------------------------
+
+### Analysis and checking of the shifted events
+The goal of this sanity check is to see if the events predict the component even if their onsets are randomly shifted,
+
+These analyses were done on the `~ 1 + moving.learn + moving.trial + pointing.learn + pointing.trial` first order model (each participant and component modeled independently) with autocorrelation. Events were loaded, randomly shifted by a number from -30 to +30s.
+
+### Procedure
+- loaded existing events
+- randomly shift each start of the event by a number drawn from a uniform distribution of -30 to +30 s. Event durations remain the same.
+- save these events
+- generate HRF for these shifted events
+- recalculate the first order model
+- save betas for each component / participant
+
+### Reported values
+The table below demonstrates how the shifted and non shifted betas correlate within subjects. The interactive report below then demonstrates how the same procedures applied in the main report lead to significant/non significant results when shifted events are concerned.
+
+```{r}
+knitr::kable(out_cor, caption = "Within subject beta correlations")
+```
+
+Row {data-height=600}
+---------------------------
+### Comparison of shifted and non shifted betas
+```{r}
+shared_beta <- SharedData$new(df_beta)
+```
+
+```{r}
+selection_widget <- bscols(
+  widths = c(6,6),
+  filter_select("event", "Event", shared_beta, ~term, multiple = FALSE),
+  filter_select("shifted", "Shifted", shared_beta, ~shifted, multiple = FALSE)
+)
+selection_widget
+plot_ly(shared_beta, x = ~component, y = ~estimate, color = ~sig) %>%
+  add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE, boxmean = TRUE,
+            boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
+  layout(height = 500, yaxis=list(range=c(-1.2,1.2)))
+```
