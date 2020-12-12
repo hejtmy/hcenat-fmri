@@ -65,7 +65,7 @@ df_beta <- df_beta %>%
             .groups="drop") %>%
   mutate(p_value = p.adjust(p_value, method = "fdr"),
          sig = p_to_stars(p_value)) %>%
-  right_join(df_beta, by=c("term", "component", "shifted"))
+  right_join(df_beta, by = c("term", "component", "shifted"))
 ```
 
 ```{r correlations}
@@ -120,4 +120,14 @@ plot_ly(shared_beta, x = ~component, y = ~estimate, color = ~sig) %>%
   add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE, boxmean = TRUE,
             boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
   layout(height = 500, yaxis=list(range=c(-1.2,1.2)))
+```
+
+```{r}
+df_beta %>%
+  filter()
+plot_ly(x = ~component, y = ~estimate, color = ~sig) %>%
+  add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE, boxmean = TRUE,
+            boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
+  layout(height = 500, yaxis=list(range=c(-1.2,1.2)))
+
 ```
