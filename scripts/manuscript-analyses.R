@@ -48,8 +48,7 @@ df_mixed_beta <- data.frame()
 df_mixed_contrast <- data.frame()
 for(component in component_names){
   message("Calculating for component ", component)
-
-  mod <- lme_second_order_model(form, component)
+  mod <- lme_second_order_model(FORMULA, component)
   fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1"))
   save(mod, file = fname)
   cont <- contrast_output(mod, contrast) %>%
@@ -83,17 +82,26 @@ lme_second_order_model_fmripackage <- function(formula, component){
   return(mod)
 }
 
-df_mixed_fmripackage_beta <- data.frame()
-df_mixed_fmripackage_contrast <- data.frame()
+NO_INTERCEPT_FORMULA <-  " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial"
 zero_intercept_contrast <- matrix(c(-1,1,0,0, 1,1,0,0, 0,0,-1,1, 0,0,1,1),
                                   4, 4, byrow = TRUE)
+rownames(zero_intercept_contrast) <- c("movement.trial > movement.learn", "movement > 0", 
+                        "pointing.trial > pointing.learn", "pointing > 0")
+
 for(component in component_names){
   message("Calculating for component ", component)
-  mod <- lme_second_order_model_fmripackage(
-    " ~ 0 + moving.learn + moving.trial + pointing.learn + pointing.trial",
-    component)
+  mod <- lme_second_order_model_fmripackage(NO_INTERCEPT_FORMULA, component)
   fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1_fmripackage"))
   save(mod, file = fname)
+  
+}
+
+df_mixed_fmripackage_beta <- data.frame()
+df_mixed_fmripackage_contrast <- data.frame()
+for(component in component_names){
+  fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1_fmripackage"))
+  message("Loading ", fname)
+  load(fname)
   cont <- contrast_output(mod, zero_intercept_contrast) %>%
     mutate(component = component)
   df_mixed_fmripackage_contrast <- rbind(df_mixed_fmripackage_contrast, cont)
@@ -104,11 +112,10 @@ for(component in component_names){
     mutate(component = component)
   df_mixed_fmripackage_beta <- rbind(df_mixed_fmripackage_beta, mod_out)
 }
-write.table(df_mixed_beta, file = "summaries/second-order-mixed-fmripackage-beta.csv",
+write.table(df_mixed_fmripackage_beta, file = "summaries/second-order-mixed-fmripackage-beta.csv",
             sep = ";", row.names = FALSE)
-write.table(df_mixed_contrast, file = "summaries/second-order-mixed-fmripackage-contrasts.csv",
+write.table(df_mixed_fmripackage_contrast, file = "summaries/second-order-mixed-fmripackage-contrasts.csv",
             sep = ";", row.names = FALSE)
-
 
 ## Mixed model first level output -------
 message("calculating first level analyses")

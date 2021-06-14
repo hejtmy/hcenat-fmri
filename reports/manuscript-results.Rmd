@@ -18,6 +18,12 @@ df_first_order_beta <- read.table("../summaries/first-order-beta.csv",
 df_glm_first_order_beta <- read.table("../summaries/glm-first-order-beta.csv",
                                       header=TRUE, sep=";")
 
+df_mixed_beta_fmripackage <- read.table("../summaries/second-order-mixed-fmripackage-beta.csv",
+                                        header = TRUE, sep=";")
+
+df_mixed_contrast_fmripackage <- read.table("../summaries/second-order-mixed-fmripackage-contrasts.csv",
+                                        header = TRUE, sep=";")
+
 COMPARISON_CORRECTION <- "fdr"
 ```
 
@@ -202,7 +208,55 @@ df_contrasts_glm_first %>%
   kable()
 ```
 
+## fMRI R pakcage approach
+```{r, echo=FALSE}
+df_beta_mixed_fmri <- df_mixed_beta_fmripackage %>%
+  mutate(p.value = p.adjust(p.value, method = COMPARISON_CORRECTION)) %>%
+  mutate(stat=paste(round(estimate, 4), p_to_stars(p.value))) %>%
+  select(component, term, stat) %>%
+  pivot_wider(names_from=term, values_from=stat)
 
+df_beta_mixed_fmri %>%
+  kable()
+```
+
+### Contrasts
+
+Here are contrasts and their significance. 
+
+The + signifies positive finding (e.g. movement > 0 or ABSOLUTE beta in trial is larger than in learn) and - negative contrast (e.g. movement < 0 , learn has larger absolute beta). These are JUST FOR GUIDANCE. Each specific beta coefficient should be investigated to get a better idea about hte relationship.
+
+All contrasts have been corrected for multiple comparisons using FDR correction 
+
+```{r, echo=FALSE}
+binding_table <- df_mixed_beta_fmripackage %>%
+  select(component, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate)
+
+df_contrasts_mixed_fmri <- df_mixed_contrast_fmripackage %>%
+  mutate(pvalues = p.adjust(pvalues, method = COMPARISON_CORRECTION)) %>%
+  mutate(stat = p_to_stars(pvalues)) %>%
+  select(stat, contrast, component) %>%
+  pivot_wider(names_from = contrast, values_from=stat) %>%
+  right_join(binding_table, by="component") %>%
+  mutate(`movement.trial > movement.learn` =
+           paste(ifelse(abs(moving.trial) > abs(moving.learn), "+", "-"), 
+                 `movement.trial > movement.learn`),
+         `pointing.trial > pointing.learn` =
+           paste(ifelse(abs(pointing.trial) > abs(pointing.learn), "+", "-"), 
+                 `pointing.trial > pointing.learn`),
+         `movement > 0` =
+           paste(ifelse((moving.trial + moving.learn) > 0, "+", "-"), 
+                 `movement > 0`),
+         `pointing > 0` =
+           paste(ifelse((pointing.trial + pointing.learn) > 0, "+", "-"), 
+                 `pointing > 0`)
+         ) %>%
+  select(component, contains(">"))
+
+df_contrasts_mixed_fmri %>%
+  kable()
+```
 ## Model comparisons
 
 All the information put together. These coefficients vs contrasts correspond in turn to:
@@ -214,6 +268,7 @@ All the information put together. These coefficients vs contrasts correspond in 
 df_beta_all <- df_beta_mixed_second %>%
   left_join(df_avg_beta_mixed_first, by="component", suffix = c("_mixed_second", "_mixed_first")) %>%
   left_join(rename_at(df_avg_beta_glm_first, vars(-component), function(x) paste0(x, "_glm_first")), by = "component") %>%
+  left_join(rename_at(df_beta_mixed_fmri, vars(-component), function(x) paste0(x, "_fmri")), by = "component") %>%
   select(-starts_with("(Intercept)"))
 
 df_beta_all %>%
@@ -225,7 +280,8 @@ df_beta_all %>%
 
 df_contrast_all <- df_contrasts_mixed_second %>%
   left_join(df_contrasts_mixed_first, by="component", suffix = c("_mixed_second", "_mixed_first")) %>%
-  left_join(rename_at(df_contrasts_glm_first, vars(-component), function(x) paste0(x, "_glm_first")), by = "component")
+  left_join(rename_at(df_contrasts_glm_first, vars(-component), function(x) paste0(x, "_glm_first")), by = "component") %>%
+  left_join(rename_at(df_contrasts_mixed_fmri, vars(-component), function(x) paste0(x, "_fmri")), by = "component")
 
 df_contrast_all %>%
     unite(`movement.trial > movement.learn`, starts_with("movement.trial > movement.learn"), sep =  " / ") %>%
