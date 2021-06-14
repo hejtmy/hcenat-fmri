@@ -1,6 +1,7 @@
 library(data.table)
 library(navr)
 library(dplyr)
+
 source('scripts/loading.R')
 DATA_DIR <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"
 CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep = ",",

@@ -21,13 +21,14 @@ df_onsets_stops <- read.table(file.path("exports", "events", "walking.csv"),
 df_onsets_stops <- df_onsets_stops %>%
   filter(fmri_code == FMRI_CODE)
 
-onset <- df_onsets_stops %>% filter(movement_type == "moving") %>% .[20,]
+onset <- df_onsets_stops %>% 
+  filter(movement_type == "moving") %>% .[20, ]
 
 df_player %>%
   filter(fmri_time > onset$time, fmri_time < onset$time + onset$duration) %>%
   ggplot(aes(x = Time, y = distance)) + geom_line()
 
-df_onsets[1,]
+df_onsets_stops[1,]
 
 ## Check the pulses ----
 df_pulses <- read.table("exports/participant-pulses.csv", sep = ";", 

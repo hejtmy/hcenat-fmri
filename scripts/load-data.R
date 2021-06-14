@@ -29,6 +29,7 @@ df_behavioral <- read.table(file.path(EXPORT_DIR, "participant-performance.csv")
                             sep = ";", header = TRUE)
 
 good_participants <- get_good_participant_ids(df_preprocessing, "unity")
+
 # Load components -----
 message("Loading components")
 mri_folder <- file.path(DATA_DIR, "..", "MRI-data-tomecek", COMPONENT_TYPE)
@@ -39,6 +40,7 @@ df_fmri <- restructure_mri(components)
 
 # only selects those participants who have components
 good_participants <- intersect(names(components[[1]]), good_participants)
+
 ## Creating component names
 component_names <- names(components)
 ptr <- "^.*?_(.*?)_([0-9]*)"
@@ -62,6 +64,7 @@ message("loading hrfs")
 hrf_names <- c("moving", "moving-learn", "moving-trial",
                "still", "still-learn", "still-trial",
                "pointing", "pointing-learn", "pointing-trial")
+
 hrf_folder <- file.path(EXPORT_DIR, "hrf")
 speed_folder <- file.path(EVENT_DIR, "speeds")
 rotation_folder <- file.path(EVENT_DIR, "rotations")
@@ -100,6 +103,7 @@ for(name in good_participants){
     }
   }
 }
+
 ### SHIFTED HRFS
 hrfs_shifted <- list()
 shifted_hrf_folder <- file.path(EXPORT_DIR, "shifted-hrf")
@@ -120,6 +124,7 @@ df_hrfs <- restructure_hrfs(hrfs)
 df_hrfs_shifted <- restructure_hrfs(hrfs_shifted)
 
 rm(shifted_hrf_folder, hrf_name)
+
 # Finalizations -------
 df_all <- merge(df_hrfs, df_fmri, by = c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
