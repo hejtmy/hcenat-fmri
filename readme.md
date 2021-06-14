@@ -14,7 +14,7 @@ folders written in *italics* are not commited, but generated as the scripts run
 - images: 
 - *models*: saved mixed models, as running them takes too long
 - reports: knitr and dash reports 
-- scripts: preprocessing and exporting R scripts
+- scripts: data loading, preprocessing, exporting R scripts
 - *summaries*: ouput of analytical scripts. Used in reports
 
 ## Data description
@@ -24,9 +24,11 @@ Unity data can be of three different "classes"
 `participant` - list of length 2 with both sessions loaded with `load_participant`.
 `participants` - named list of all participant files loaded with `load_participants`.
 
-## Behavioral preprocessing procedure
+## Preprocessing procedure
 1. Run the `scripts/preprocess-participants` R script. This processes all the data and saves it into `participants-prepapred.RDa` file
-2. You can then run `scripts/pulses-output.R` which outputs the pulses events into the exports folder.
+2. You can then run `scripts/pulses-output.R` which outputs the pulses events into the exports folder. These evens are then used by the matlab's hrf convolutions.
+3. Run matlab hrf generation (see below)
+4. 
 
 ## Matlab HRF modelling procedure
 There are some requirements for the matlab code. 
@@ -38,12 +40,26 @@ There are some requirements for the matlab code.
 2. In the `fmri/preprocess.m`, change the directory and required parameters (e.g. names of files). If you are running this for the first time, create 'exports/hrf' folder in the root.
 3. Run the `preprocess.m` - it models the hrf timeseries from the behavioural data and saves them into the 'exports/hrf'
 
-## Analysis procedure
+## Correlation analysis procedure
 The analyses on the timeseries can be run in either matlab or R. After simulating and convolving the fmri hrf, there is no other reason to use matlab, as the matrices are not really that big. The procedure then is just a computing timeseries correlations.
 
 The matlab analyses are in the `fmri/analysis` - that saves the final correlation matrices in the exports
 The R analyses used for exporting the online exploration tool are in `reports/hrf-correlations.Rmd`
 
+## Main manuscript analysis
+The main analysis for the manuscript uses linear mixed effects and GLM modelling of hrf convolved timeseries.
+
+The 
+
+
+## Scripts description
+- check-things-work.R - short functions and scripts with some sanity checks about behavioral and fMRI data
+- load-data.R - loads and restructures the preprocessed participant unity data and all other data (preprocessing table, behavioral, pulses, components etc.) necessary for manuscript-analyses and shifting scripts
+- loading.R - helper to load all functions from the function folder
+- manuscript-analyses.R - main manuscript analyses. Calculates and outputs mixed effect models and GLMs for all components and events and saves both raw models as well as obtained beta coefficients and contrasts.
+- preprocess-participants.R - creates behavioral summaries
+- pulses-output.R - analyses behavioral data, finds relevant events (pointing started, movement onset etc) and outputs these events as fmri pulses
+- shifting-and-recalculating-analyses.R - similar to main manuscript analyses but with models computed on randomly shifted events to determine if the observed components have behaviorally relevant features
 
 
 ## Notes and FAQ
