@@ -1,0 +1,170 @@
+---
+title: "Interactive report of the first order beta coefficients"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "25/03/2020"
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                        encoding=encoding, 
+                        output_file=file.path(dirname(inputFile),
+                          output_dir = "../docs",
+                          'manuscript-mixed-interactive-report.html'))})
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: rows
+---
+```{r setup, message=FALSE, warning=FALSE, results='hide', echo=FALSE}
+library(plotly)
+library(crosstalk)
+library(knitr)
+library(tidyverse)
+
+p_to_stars <- function(values){
+  func <- function(value){
+    if(value >= 0.05) return("-")
+    if(value < 0.001) return("***")
+    if(value < 0.01) return("**")
+    if(value < 0.05) return("*")
+  }
+  return(sapply(values, func))
+}
+
+df_beta <- read.table("../summaries/second-order-mixed-fmripackage-beta.csv",
+                                  header = TRUE, sep = ";")
+
+df_contrasts <- read.table("../summaries/second-order-mixed-fmripackage-contrasts.csv",
+                                  header = TRUE, sep = ";")
+
+df_components <- read.table("../data/komponenty.txt", sep = ";", header = TRUE) %>%
+  arrange(component)
+
+df_beta <- df_beta %>%
+  mutate(component = as.numeric(gsub("filt_component_", "", component))) %>%
+  left_join(df_components, by="component") %>%
+  mutate(component = paste0(component_label, "(", component, ")"),
+         p_value = p.adjust(p.value, method = "fdr"),
+         sig = p_to_stars(p_value)) %>%
+  select(-c(component_label, component_notes, p.value, std.error,
+            df, statistic))
+
+df_contrasts <- df_contrasts %>%
+  mutate(component = as.numeric(gsub("filt_component_", "", component))) %>%
+  left_join(df_components, by = "component") %>%
+  mutate(component = paste0(component_label, "(", component, ")"),
+         p_value = p.adjust(pvalues, method = "fdr"),
+         sig = p_to_stars(p_value)) %>%
+  select(-c(component_label, component_notes, pvalues, tstat)) %>%
+  rename(term = contrast, estimate=coefficients)
+
+df_beta <- rbind(df_beta, df_contrasts)
+```
+
+-------------------------------
+
+#### Overview
+This report uses first order beta coefficients of the `component ~ 1 + moving.trial + moving.learn + pointing.trial + pointing.learn` model. The model is built for each participant and component and the final coefficients are recorded. The intercepts are not reported here. The significance determines wilcox test comparison of the all coefficients against 0. The contrasts significances are determined as follows:
+
+- movement > 0: calculated as a sum of betas of (moving.learn + moving.trial). P value then unpaired wilcox test comparing these against 0
+- movement.trial > movement.learn: constrast estimate computed as the moving.trial - moving.learn betas. P values are obtained using paired wilcox test comparing the betas against each other
+
+P values of beta coefficients are corrected with FDR correction (intercepts not included in this correction)
+Calculated contrast P values are also corrected with FDR correction (separately from main betas)
+
+#### How to use
+The main window allows plotting of all components for a particular beta or contrast. The dots are individual beta coefficients for the component and predictor for a single participant. 
+
+Left bottom graphs allow plotting of the all the betas and contrasts for a particular component. Individual dots are again results for a single participant, final barplot then determines mean, median etc. of the entire sample.
+
+Left right window allows visualising of the given component. THis needs to be set manually, does not change automatically.
+
+Row {data-height=600}
+---------------------------
+
+### All components
+```{r}
+shared_beta <- SharedData$new(df_beta)
+shared_beta2 <- SharedData$new(df_beta)
+```
+
+```{r}
+selection_widget <- bscols(
+  widths = 12,
+  filter_select("event", "Event", shared_beta, ~term, multiple = FALSE)
+)
+selection_widget
+plot_ly(shared_beta, x = ~component, y = ~estimate, color = ~sig) %>%
+  add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE, boxmean = TRUE,
+            boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
+  layout(height = 500, yaxis=list(range=c(-1.2,1.2)))
+```
+
+
+Row {data-height=800}
+---------------------------------
+### new text
+
+```{r}
+selection_widget2 <- bscols(
+  widths = 12,
+  filter_select("component", "Component", shared_beta2, 
+                ~component, multiple = FALSE)
+)
+selection_widget2
+shared_beta2 %>%
+  plot_ly(x=~term, y=~estimate, color=~sig) %>%
+    add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE,
+              boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
+  layout(autosize = TRUE, height = 400,
+         xaxis = list(autorange = TRUE))
+```
+
+### Component
+```{r, results='asis'}
+cat('<script>
+var myStorage = window.localStorage;')
+for(i in 1:nrow(df_components)){
+  script <- paste0('
+  myStorage.setItem("component', df_components$component[i], '", JSON.stringify({"label":"',
+    df_components$component_label[i], '", "note":"', df_components$component_notes[i], '"}));')
+  cat(script)
+}
+cat('</script>')
+
+```
+
+
+```{r, results='asis'}
+knitr::raw_html('
+    <div class="slidecontainer">
+  <input type="range" min="1" max="58" value="1" class="slider-square" id="component-slider">
+</div>
+<div id="id-component">
+
+</div>
+<div id="image-swap"></div>
+<script>
+var slider = document.getElementById("component-slider");
+var output = document.getElementById("id-component");
+output.innerHTML = slider.value; // Display the default slider value
+
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+  var componentName = "component" + this.value;
+  var obj = JSON.parse(myStorage.getItem(componentName))
+  output.innerHTML = this.value + ": " + obj.label + " - " + obj.note;
+  setImage(this.value);
+}
+function setImage(value){
+    var div = document.getElementById("image-swap");
+    div.innerHTML =  "";
+    div.appendChild(createImage(value));
+}
+function createImage(value){
+    let img = document.createElement("img"); 
+    image_pth = "img/component_" + value + ".png";
+	img.src = image_pth;
+    return(img);
+}
+</script>')
+```
+

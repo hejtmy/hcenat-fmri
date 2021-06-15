@@ -1,5 +1,5 @@
 ---
-title: "Interactive report of the beta coefficients"
+title: "Interactive report of the first order beta coefficients"
 author: "Lukáš 'hejtmy' Hejtmánek"
 date: "25/03/2020"
 knit: (function(inputFile, encoding) { 
@@ -7,7 +7,7 @@ knit: (function(inputFile, encoding) {
                         encoding=encoding, 
                         output_file=file.path(dirname(inputFile),
                           output_dir = "../docs",
-                          'manuscript-interactive-report.html'))})
+                          'manuscript-first-order-interactive-report.html'))})
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: scroll
