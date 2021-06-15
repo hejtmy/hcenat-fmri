@@ -44,17 +44,23 @@ lme_second_order_model <- function(formula, component){
       correlation = autocorrelation_structure)
   return(mod)
 }
-df_mixed_beta <- data.frame()
-df_mixed_contrast <- data.frame()
+
 for(component in component_names){
   message("Calculating for component ", component)
   mod <- lme_second_order_model(FORMULA, component)
   fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1"))
   save(mod, file = fname)
+}
+
+df_mixed_beta <- data.frame()
+df_mixed_contrast <- data.frame()
+for(component in component_names){
+  fname <- file.path(RELATIVE_DIR, "models", paste0("lme_", component, "_ar1"))
+  load(fname)
   cont <- contrast_output(mod, contrast) %>%
     mutate(component = component)
   df_mixed_contrast <- rbind(df_mixed_contrast, cont)
-  
+
   mod_out <- tidy(mod) %>%
     filter(effect == "fixed") %>%
     select(-c(effect, group)) %>%
@@ -127,6 +133,7 @@ lme_first_order_model <- function(formula, dat){
       correlation = autocorrelation_structure_first)
   return(mod)
 }
+
 df_first_order_beta <- data.frame()
 for(component in component_names){
   message("\nCalculating for component ", component)
