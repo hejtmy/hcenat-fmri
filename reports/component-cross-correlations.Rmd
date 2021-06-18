@@ -29,7 +29,9 @@ df_components <- read.table("../exports/components-all.csv", sep=";", header = T
 #ggpairs(select(df_components, -c(pulse_id, participant)))
 #ggcorr(select(df_components, -c(pulse_id, participant)), method=c("everything", "pearson"))
 all_correlations <- correlation(select(df_components, -c(pulse_id, participant)))
-all_correlations
+all_correlations %>%
+  filter(!grepl("artefact", Parameter1),
+         !grepl("artefact", Parameter2))
 ```
 
 ```{r}
