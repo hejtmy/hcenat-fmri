@@ -89,8 +89,11 @@ for(name in good_participants){
 ```
 
 ```{r averaging-correlations}
-cor_long <- correlations %>% pivot_longer(cols = -c(participant, event), names_to = "component")
-avg_cor <- cor_long %>% group_by(event, component) %>% summarize(average = mean(value))
+cor_long <- correlations %>% 
+  pivot_longer(cols = -c(participant, event), names_to = "component")
+avg_cor <- cor_long %>% 
+  group_by(event, component) %>% 
+  summarize(average = mean(value))
 ```
 
 -------------------------------
@@ -99,7 +102,6 @@ avg_cor <- cor_long %>% group_by(event, component) %>% summarize(average = mean(
 Vlevo jsou boxploty za všechny komponenty. Je nutné nejdřív vybrat patřičný event, v defaultu je to vykreselno na průměr pro všechny. Tečky jsou jednotlivé korelace pro daný event a komponentu pro jednoho participanta. 
 
 Vpravo je pak možnost vybrat konkrétní komponentu a podívat se, jak reaguje v různých situacích. V základu je tam opět vykresleno vše, je nutné zvolit jednu konkrétní komponentu.
-
 
 ---------------------------
 

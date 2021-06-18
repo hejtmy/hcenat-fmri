@@ -1,0 +1,55 @@
+---
+title: "Cross correlations"
+author: "Lukáš 'hejtmy' Hejtmánek"
+date: "`r Sys.Date()`"
+output: html_document
+knit: (function(inputFile, encoding) {
+      rmarkdown::render(inputFile,
+                        encoding=encoding, 
+                        output_file=file.path(dirname(inputFile),
+                          output_dir = "../docs",
+                          'component-cross-correlations.html'))})
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(correlation)
+knitr::opts_chunk$set(echo = TRUE)
+
+df_components_names <- read.table("../data/komponenty.txt", sep = ";", header = TRUE) %>%
+  mutate(original_name = paste0("filt_component_", component, sep= ""),
+         label = paste0(component_label, "(", component, ")", sep="")) %>%
+  arrange(component)
+
+df_components <- read.table("../exports/components-all.csv", sep=";", header = TRUE) %>%
+  rename_with(~sapply(.x, function(x){df_components_names[df_components_names$original_name == x, ]$label}), .cols = starts_with("filt_"))
+```
+
+```{r}
+#ggpairs(select(df_components, -c(pulse_id, participant)))
+#ggcorr(select(df_components, -c(pulse_id, participant)), method=c("everything", "pearson"))
+all_correlations <- correlation(select(df_components, -c(pulse_id, participant)))
+all_correlations
+```
+
+```{r}
+all_correlations <- correlation(select(df_components, -c(pulse_id, participant)), 
+                                redundant = TRUE)
+all_correlations %>%
+  filter(!grepl("artefact", Parameter1),
+         !grepl("artefact", Parameter2)) %>%
+  ggplot(aes(Parameter1, Parameter2, fill = r)) + geom_tile(color='white') +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+    midpoint = 0, limit = c(-1,1), space = "Lab", 
+    name="Pearson\nCorrelation") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+```{r}
+all_correlations <- correlation(select(df_components, -c(pulse_id, participant)))
+all_correlations %>%
+  filter(!grepl("artefact", Parameter1),
+         !grepl("artefact", Parameter2)) %>%
+  arrange(r)
+```

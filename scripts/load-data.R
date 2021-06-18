@@ -57,6 +57,7 @@ names_clean <- sapply(names(components_all),
 names(components_all) <- names_clean
 components_all <- rename_mri_participants(components_all, df_preprocessing)
 df_fmri_all <- restructure_mri(components_all)
+write.table(df_fmri_all, "exports/components-all.csv", sep=";")
 
 ## Loading hrfs ------
 message("loading hrfs")
@@ -128,7 +129,8 @@ rm(shifted_hrf_folder, hrf_name)
 # Finalizations -------
 df_all <- merge(df_hrfs, df_fmri, by = c("pulse_id", "participant"))
 df_all <- left_join(df_all, df_pulses, by = c("participant" = "ID", "pulse_id"))
-df_all <- df_all %>% arrange(participant, pulse_id)
+df_all <- df_all %>%
+  arrange(participant, pulse_id)
 
 rm(code, codes, mri_folder, hrf_folder, hrf, name, names_file,
    f, hrf_names, speed_folder, rotation_folder, rotation, names_clean,
