@@ -1,59 +1,59 @@
-component;component_label;component_notes
-1;artefact;cevy
-2;DMN;front+dorz
-3;bazalni ganglia;
-4;VIS;occip
-5;DMN/SN;ACC, insula, rHPC?
-6;artefact;
-7;precuneus?;right
-8;SN;AC, bilatINS
-9;artefact;eyes
-10;VIS?;ventral stream?
-11;temporoparietal;?
-12;HPC;right TC
-13;artefact?;DMN/SN
-14;artefact;eyes
-15;artefact;surface
-16;CEN;right, SN?
-17;subcortical;artefact?
-18;somatomotor;Lmotor,Rcerebelum
-19;artefact;eyes
-20;subcortical;thalamus?
-21;motor;cerebellum Bilat
-22;artefact;orbitofrontal
-23;CEN;bilat
-24;artefact;
-25;VISUO;FFG bilat
-26;artefact;surface
-27;limbic areas?;
-28;cerebellum;central
-29;artefact;
-30;artefact;
-31;auditory cortex?;temporo-parietal
-32;artefact;frontal
-33;somatomotor;Rmotor,Lcereb
-34;artefact;eyes
-35;VISUO;V1-4
-36;cerebellum?;central
-37;CEN;left+bilat
-38;UNCERTAIN;Loccip,cereb
-39;CEN;left+bilat
-40;subcortical?;
-41;artefact;
-42;artefact;orbitofrontal
-43;VIS;
-44;subcortical;TH, BG?
-45;artefact;surface
-46;CEN;right
-47;cerebellum;
-48;cuneus/PCC;?
-49;artefact;eyes
-50;artefact;surface
-51;DMN;dorzal, PCC
-52;DMN;frontal,mPFC
-53;cuneus/PCC;?
-54;HPC;temporal c.
-55;artefact;eyes
-56;HPC/INS?;temporal c.
-57;somatomotor;motor cortex?
-58;artefact;eyes
+"component";"component_notes";"component_label_old";"component_label"
+1;"cevy";"artefact";"art"
+2;"front+dorz";"DMN";"DMNa"
+3;NA;"bazalni ganglia";"BG"
+4;"occip";"VIS";"VIS"
+5;"ACC, insula, rHPC?";"DMN/SN";"LOC-BrainStem"
+6;NA;"artefact";"art"
+7;"right";"precuneus?";"LGr"
+8;"AC, bilatINS";"SN";"OFC-PaCC"
+9;"eyes";"artefact";"art"
+10;"ventral stream?";"VIS?";"PaHC-FuC"
+11;"?";"temporoparietal";"Temporal"
+12;"right TC";"HPC";"HPC-amg"
+13;"DMN/SN";"artefact?";"dDMN"
+14;"eyes";"artefact";"art"
+15;"surface";"artefact";"art"
+16;"right CEN, SN?";"CEN";"rCEN/ins"
+17;"artefact?";"subcortical";"caudate-AC"
+18;"Lmotor,Rcerebelum";"somatomotor";"somatomotor"
+19;"eyes";"artefact";"art"
+20;"thalamus?";"subcortical";"???"
+21;"cerebellum Bilat";"motor";"Lmotor"
+22;"orbitofrontal";"artefact";"Fpole"
+23;"bilat";"CEN";"SMG-IF"
+24;NA;"artefact";"VISart"
+25;"FFG bilat";"VISUO";"HPC-ventrVIS"
+26;"surface";"artefact";"art"
+27;NA;"limbic areas?";"Bstem-amg"
+28;"central";"cerebellum";"Bstem"
+29;NA;"artefact";"Bstem"
+30;NA;"artefact";"Tha"
+31;"temporo-parietal";"auditory cortex?";"operculum"
+32;"frontal";"artefact";"FC/art"
+33;"Rmotor,Lcereb";"somatomotor";"Rmotor"
+34;"eyes";"artefact";"art"
+35;"V1-4";"VISUO";"VIS"
+36;"central";"cerebellum?";"Bstem"
+37;"left+bilat";"CEN";"L-CEN"
+38;"Loccip,cereb";"?";"OFC-FusG-LOC"
+39;"left+bilat";"CEN";"L-CEN"
+40;NA;"subcortical?";"Caudate-Verm"
+41;NA;"artefact";"art?"
+42;"orbitofrontal";"artefact";"artefact-aDMN?"
+43;NA;"VIS";"VIS-FEF"
+44;"TH, BG?";"subcortical";"subcortical-amg"
+45;"surface";"artefact";"art"
+46;"right";"CEN";"rCEN"
+47;NA;"cerebellum";"cerebellum"
+48;"?";"cuneus/PCC";"cuneus"
+49;"eyes";"artefact";"art"
+50;"surface";"artefact";"art"
+51;"dorzal, PCC";"DMN";"dDMN"
+52;"frontal,mPFC";"DMN";"DMN"
+53;"?";"cuneus/PCC";"cuneus-LG?"
+54;"temporal c.";"HPC";"TP-FP"
+55;"eyes";"artefact";"art"
+56;"temporal c.";"HPC/INS?";"HPC"
+57;"motor cortex?";"somatomotor";"dVIS-FEF?"
+58;"eyes";"artefact";"art"
