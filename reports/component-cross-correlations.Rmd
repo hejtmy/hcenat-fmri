@@ -30,16 +30,16 @@ df_components <- read.table("../exports/components-all.csv", sep=";", header = T
 #ggcorr(select(df_components, -c(pulse_id, participant)), method=c("everything", "pearson"))
 all_correlations <- correlation(select(df_components, -c(pulse_id, participant)))
 all_correlations %>%
-  filter(!grepl("artefact", Parameter1),
-         !grepl("artefact", Parameter2))
+  filter(!grepl("^art.*", Parameter1),
+         !grepl("^art.*", Parameter2))
 ```
 
 ```{r}
 all_correlations <- correlation(select(df_components, -c(pulse_id, participant)), 
                                 redundant = TRUE)
 all_correlations %>%
-  filter(!grepl("artefact", Parameter1),
-         !grepl("artefact", Parameter2)) %>%
+  filter(!grepl("^art.*", Parameter1),
+         !grepl("^art.*", Parameter2)) %>%
   ggplot(aes(Parameter1, Parameter2, fill = r)) + geom_tile(color='white') +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
     midpoint = 0, limit = c(-1,1), space = "Lab", 
@@ -51,7 +51,7 @@ all_correlations %>%
 ```{r}
 all_correlations <- correlation(select(df_components, -c(pulse_id, participant)))
 all_correlations %>%
-  filter(!grepl("artefact", Parameter1),
-         !grepl("artefact", Parameter2)) %>%
+  filter(!grepl("^art.*", Parameter1),
+         !grepl("^art.*", Parameter2)) %>%
   arrange(r)
 ```
