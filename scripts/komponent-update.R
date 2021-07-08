@@ -8,3 +8,5 @@ df_out <- select(df_components, component=komponenta, component_notes=notes,
 
 
 write.table(df_out, "data/komponenty.txt", sep=";", row.names = FALSE)
+rm(df_out, df_components)
+

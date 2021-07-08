@@ -1,7 +1,10 @@
 library(data.table)
 library(navr)
 library(dplyr)
-sapply(list.files("functions", full.names = T, recursive = T), source)
+
+library(googlesheets4)
+
+sapply(list.files("functions", full.names = TRUE, recursive = TRUE), source)
 CORRECT_ANGLES <- read.table("data/correct-angles.csv", sep=",", header=TRUE)
 
 data_dir <- "E:/OneDrive/NUDZ/projects/HCENAT/Data/"

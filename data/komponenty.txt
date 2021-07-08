@@ -18,7 +18,7 @@
 17;"artefact?";"caudate-AC"
 18;"Lmotor,Rcerebelum";"somatomotor"
 19;"eyes";"art"
-20;"thalamus?";"???"
+20;"thalamus?";"Ins-Verm"
 21;"cerebellum Bilat";"Lmotor"
 22;"orbitofrontal";"Fpole"
 23;"bilat";"SMG-IF"
