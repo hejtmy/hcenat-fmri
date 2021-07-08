@@ -124,7 +124,6 @@ plot_ly(shared_beta, x = ~component, y = ~estimate, color = ~sig) %>%
 
 ```{r}
 df_beta %>%
-  filter()
 plot_ly(x = ~component, y = ~estimate, color = ~sig) %>%
   add_trace(type = "box", hoverinfo = "x+y", showlegend = TRUE, boxmean = TRUE,
             boxpoints = "all", jitter = 1, boxpoints = TRUE, hoveron = "boxes") %>%
